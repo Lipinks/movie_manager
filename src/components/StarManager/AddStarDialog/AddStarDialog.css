@@ -1,0 +1,152 @@
+/* ====================================
+   ADD STAR DIALOG - Namespaced
+   ==================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --gold-primary: #FFD700;
+  --gold-dark: #B8860B;
+  --gold-accent: #DAA520;
+  --cream-bg: #fef9e7;
+}
+
+/* -- Overlay -------------------------- */
+.add-star-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow: auto;
+}
+
+/* -- Dialog Container ----------------- */
+.add-star-dialog {
+  background: linear-gradient(135deg, #fff9e6 0%, var(--cream-bg) 100%);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-height: 85vh;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  position: relative;
+}
+
+.add-star-dialog::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-primary));
+}
+
+/* -- Title ---------------------------- */
+.add-star-dialog .add-new-star {
+  font-size: 25px;
+  font-weight: bolder;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* -- Input Layout --------------------- */
+.add-star-dialog .name-input-section {
+  display: grid;
+  grid-template-columns: 1fr 3fr 3fr;
+}
+
+/* -- Inputs --------------------------- */
+.add-star-dialog input[type="text"],
+.add-star-dialog input[type="url"] {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e8e0c5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  background: white;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.add-star-dialog input:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+}
+
+.add-star-dialog input::placeholder {
+  color: #a0a0a0;
+  font-size: 13px;
+}
+
+/* -- Buttons -------------------------- */
+.add-star-dialog .create-new-tag {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  height: 36px;
+}
+
+.add-star-dialog .save-btn,
+.add-star-dialog .cancel-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 38px;
+}
+
+.add-star-dialog .save-btn {
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+  color: #1a1a1a;
+  box-shadow: 0 3px 8px rgba(218, 165, 32, 0.3);
+}
+
+.add-star-dialog .cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.add-star-dialog .save-btn:hover,
+.add-star-dialog .cancel-btn:hover {
+  transform: translateY(-1px);
+}
+
+.add-star-dialog .save-btn:active,
+.add-star-dialog .cancel-btn:active {
+  transform: translateY(0);
+}
+
+/* -- Responsive ----------------------- */
+@media (max-width: 480px) {
+  .add-star-dialog {
+    padding: 20px 16px;
+    max-height: 90vh;
+  }
+
+  .add-star-dialog .create-new-tag {
+    flex-direction: column;
+    height: auto;
+    gap: 6px;
+  }
+
+  .add-star-dialog .create-new-tag button {
+    width: 100%;
+    height: 32px;
+  }
+}

@@ -1,0 +1,43 @@
+.home-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle at 50% 30%, #fffbe6 0%, #ffe9b3 100%);
+  animation: fadeIn 1.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(30px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+.home-container h1 {
+  font-family: 'Cinzel Decorative', cursive, serif;
+  font-size: 2.8rem;
+  color: #c5a133ff;
+  margin-bottom: 2rem;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 12px #ffe066, 0 1px 0 #fffbe6;
+}
+
+.signin-btn {
+  padding: 0.8em 2.2em;
+  font-size: 1.2rem;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(90deg, #ffd700 0%, #ffecb3 100%);
+  color: #7c6f27;
+  border: none;
+  border-radius: 32px;
+  box-shadow: 0 4px 18px rgba(191, 161, 74, 0.12);
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.signin-btn:hover, .signin-btn:focus {
+  background: linear-gradient(90deg, #ffecb3 0%, #ffd700 100%);
+  transform: scale(1.07);
+  box-shadow: 0 8px 24px rgba(191, 161, 74, 0.18);
+}

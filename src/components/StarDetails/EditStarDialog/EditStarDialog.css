@@ -1,0 +1,222 @@
+/* ====================================
+   EDIT STAR DIALOG - Namespaced
+   ==================================== */
+
+/* -- Overlay -------------------------- */
+.edit-star-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: esd-fadeIn 0.3s ease;
+}
+
+@keyframes esd-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* -- Dialog Container ----------------- */
+.edit-star-dialog {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 1100px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  position: relative;
+  animation: esd-slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes esd-slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* -- Header --------------------------- */
+.edit-star-header {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  padding: 25px 30px;
+  position: relative;
+  overflow: hidden;
+}
+
+.edit-star-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.edit-star-header h2 i {
+  font-size: 1.3rem;
+}
+
+.edit-star-header .header-decoration {
+  position: absolute;
+  top: -50px;
+  right: -30px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+/* -- Body ----------------------------- */
+.edit-star-body {
+  padding: 30px;
+  background: #f8fafc;
+}
+
+.edit-star-body .input-group {
+  margin-bottom: 30px;
+}
+
+.edit-star-body .input-label {
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.edit-star-body .input-label i {
+  color: #6366f1;
+  width: 20px;
+}
+
+.edit-star-body .input-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.edit-star-body .input-wrapper:hover {
+  border-color: #c7d2fe;
+}
+
+.edit-star-body .input-wrapper:focus-within {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.edit-star-body .input-wrapper.disabled {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.edit-star-body .input-wrapper.disabled:hover {
+  border-color: #e2e8f0;
+}
+
+.edit-star-body input {
+  width: 100%;
+  padding: 16px 20px 16px 50px;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  color: #334155;
+  outline: none;
+}
+
+.edit-star-body input::placeholder {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.edit-star-body input:disabled {
+  color: #64748b;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.edit-star-body .input-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.edit-star-body .input-wrapper.disabled .input-icon {
+  color: #64748b;
+}
+
+.edit-star-body .input-hint {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-top: 6px;
+  margin-left: 5px;
+  font-style: italic;
+}
+
+/* -- Footer --------------------------- */
+.edit-star-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  padding: 20px 30px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.edit-star-footer .btn {
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  border: none;
+  min-width: 140px;
+}
+
+.edit-star-footer .save-btn {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.edit-star-footer .save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.edit-star-footer .save-btn:active {
+  transform: translateY(0);
+}
+
+.edit-star-footer .cancel-btn {
+  background: white;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+}
+
+.edit-star-footer .cancel-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
