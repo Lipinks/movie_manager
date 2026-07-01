@@ -1,0 +1,16 @@
+/* Global resets that keep the layout mobile-safe. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* Prevent stray horizontal scrolling on narrow phone screens. */
+  overflow-x: hidden;
+}

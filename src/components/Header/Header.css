@@ -173,8 +173,51 @@
         padding: 8px 12px;
         font-size: 13px;
     }
-    
+
     .logo {
         font-size: 24px;
+    }
+}
+
+/* Phones: keep the header a single compact row (~50px tall) and let the
+   buttons scroll horizontally instead of wrapping into a tall column that
+   would hide page content behind the fixed header. */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: row;
+        gap: 8px;
+        padding: 6px 10px;
+        padding-right: 10px;
+        border-radius: 0;
+    }
+
+    .logo {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .logo::before,
+    .logo::after {
+        display: none;
+    }
+
+    .header-buttons {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .header-buttons::-webkit-scrollbar {
+        display: none;
+    }
+
+    .header-btn {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 13px;
     }
 }

@@ -14,14 +14,13 @@ const StarManager = ({showAddStarModal, closeAddStarModal, updateStarDetails, st
     Tags: [],
   });
   const [availableTags, setAvailableTags] = useState([]);
-  const [newTag, setNewTag] = useState('');
 
   useEffect(() => {
     setAvailableTags(storage.getItem(storage.KEYS.TAGS, []));
   }, []);
 
   const handleInputChange = (e) => {
-    var { name, value } = e.target;
+    const { name, value } = e.target;
     setNewStar(prev => ({
       ...prev,
       [name]: value
@@ -44,27 +43,13 @@ const StarManager = ({showAddStarModal, closeAddStarModal, updateStarDetails, st
     }));
   };
 
-  const handleCreateNewTag = () => {
-    if (newTag.trim() && !availableTags.includes(newTag.trim())) {
-      var trimmedTag = newTag.trim();
-      var updatedTags = [...availableTags, trimmedTag];
+  const handleCreateNewTag = (tag) => {
+    if (!availableTags.includes(tag)) {
+      const updatedTags = [...availableTags, tag];
       setAvailableTags(updatedTags);
-      
       storage.setItem(storage.KEYS.TAGS, updatedTags);
-      
-      setNewStar(prev => ({
-        ...prev,
-        Tags: [...prev.Tags, trimmedTag]
-      }));
-      
-      setNewTag('');
     }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleCreateNewTag();
-    }
+    handleAddTagToStar(tag);
   };
 
   const handleSave = () => {
@@ -107,18 +92,15 @@ const StarManager = ({showAddStarModal, closeAddStarModal, updateStarDetails, st
   return (
     <div className="star-manager">
       {showAddStarModal && (
-        <AddStarDialog 
+        <AddStarDialog
           newStar={newStar}
           handleInputChange={handleInputChange}
           handleAddTagToStar={handleAddTagToStar}
           handleRemoveTag={handleRemoveTag}
           handleCreateNewTag={handleCreateNewTag}
-          handleKeyPress={handleKeyPress}
           closeAddStarModal={closeAddStarModal}
           handleSave={handleSave}
           tags={availableTags}
-          newTag={newTag}
-          setNewTag={setNewTag} 
         />
       )}
 

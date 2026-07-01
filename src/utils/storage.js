@@ -72,7 +72,6 @@ export const invalidate = (key) => {
 /** Convenience: common keys */
 export const KEYS = {
   ACCESS_TOKEN: 'accessToken',
-  REFRESH_TOKEN: 'refreshToken',
   STARS: 'stars',
   FAVORITES: 'favorites',
   TAGS: 'tags',

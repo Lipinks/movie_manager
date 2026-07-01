@@ -1,7 +1,64 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './gallery.css';
+import { driveFetch, DRIVE_API, UPLOAD_API } from '../../services/driveService';
 
 const IMAGES_PER_PAGE = 20;
+
+// Session-cache helpers for a folder's { folders, images } payload.
+const folderCacheKey = (id) => `galleryFolder_${id}`;
+const readFolderCache = (id) => {
+  const cached = sessionStorage.getItem(folderCacheKey(id));
+  return cached ? JSON.parse(cached) : null;
+};
+const writeFolderCache = (id, data) => {
+  sessionStorage.setItem(folderCacheKey(id), JSON.stringify(data));
+};
+
+// Renders a Drive image thumbnail. Prefers the token-free `thumbnailLink`
+// (Google caches this aggressively); only when it is absent — or fails to
+// load — does it fetch the bytes with an Authorization header and display them
+// via a blob URL, so the access token is never placed in an <img> src. Blob
+// URLs are revoked on unmount. Because the blob path is a fallback, a normal
+// grid load makes zero authenticated image requests and avoids 429s.
+const AuthedImage = ({ image, accessToken, alt, loading }) => {
+  const [src, setSrc] = useState(image.thumbnailLink || null);
+  const [failed, setFailed] = useState(false);
+  const blobUrlRef = useRef(null);
+
+  const loadBlob = useCallback(async () => {
+    try {
+      const response = await driveFetch(`${DRIVE_API}/files/${image.id}?alt=media`, { token: accessToken });
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+      setSrc(url);
+    } catch (err) {
+      console.error(`Error loading image ${image.name}:`, err);
+      setFailed(true);
+    }
+  }, [image.id, image.name, accessToken]);
+
+  useEffect(() => {
+    if (!image.thumbnailLink) loadBlob();
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
+      }
+    };
+  }, [image.thumbnailLink, loadBlob]);
+
+  const handleError = () => {
+    // thumbnailLink failed — fall back to an authenticated blob fetch (once).
+    if (!blobUrlRef.current) loadBlob();
+  };
+
+  if (failed || !src) {
+    return <div className="gallery-img-placeholder" />;
+  }
+
+  return <img src={src} alt={alt} loading={loading} onError={handleError} />;
+};
 
 const Gallery = ({ accessToken }) => {
   const [images, setImages] = useState([]);
@@ -14,6 +71,7 @@ const Gallery = ({ accessToken }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(-1);
   const [fullImageUrl, setFullImageUrl] = useState(null);
+  const [fullImageError, setFullImageError] = useState(false);
   const [loadingFullImage, setLoadingFullImage] = useState(false);
   const [error, setError] = useState(null);
 
@@ -29,51 +87,33 @@ const Gallery = ({ accessToken }) => {
 
   // Find or create the 'gallery' folder in Google Drive
   const getGalleryFolderId = useCallback(async () => {
-    try {
-      // Search for existing 'gallery' folder
-      const searchResponse = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=name='gallery' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` }
-        }
-      );
-      const searchData = await searchResponse.json();
-      
-      if (searchData.files && searchData.files.length > 0) {
-        return searchData.files[0].id;
-      }
-      
-      // Create 'gallery' folder if it doesn't exist
-      const createResponse = await fetch(
-        'https://www.googleapis.com/drive/v3/files',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            name: 'gallery',
-            mimeType: 'application/vnd.google-apps.folder'
-          })
-        }
-      );
-      const createData = await createResponse.json();
-      return createData.id;
-    } catch (err) {
-      console.error('Error getting gallery folder:', err);
-      throw err;
+    const searchResponse = await driveFetch(
+      `${DRIVE_API}/files?q=name='gallery' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`,
+      { token: accessToken }
+    );
+    const searchData = await searchResponse.json();
+
+    if (searchData.files && searchData.files.length > 0) {
+      return searchData.files[0].id;
     }
+
+    // Create 'gallery' folder if it doesn't exist
+    const createResponse = await driveFetch(`${DRIVE_API}/files`, {
+      token: accessToken,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'gallery', mimeType: 'application/vnd.google-apps.folder' }),
+    });
+    const createData = await createResponse.json();
+    return createData.id;
   }, [accessToken]);
 
   const fetchFolderContents = useCallback(async (folderId, forceRefresh = false) => {
-    const cacheKey = `galleryFolder_${folderId}`;
     if (!forceRefresh) {
-      const cached = sessionStorage.getItem(cacheKey);
+      const cached = readFolderCache(folderId);
       if (cached) {
-        const { folders, images: imgs } = JSON.parse(cached);
-        setSubFolders(folders || []);
-        setImages(imgs || []);
+        setSubFolders(cached.folders || []);
+        setImages(cached.images || []);
         setVisibleCount(IMAGES_PER_PAGE);
         return;
       }
@@ -84,17 +124,15 @@ const Gallery = ({ accessToken }) => {
 
     try {
       const [foldersRes, imagesRes] = await Promise.all([
-        fetch(
-          `https://www.googleapis.com/drive/v3/files?q='${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)&orderBy=name`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
+        driveFetch(
+          `${DRIVE_API}/files?q='${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)&orderBy=name`,
+          { token: accessToken }
         ),
-        fetch(
-          `https://www.googleapis.com/drive/v3/files?q='${folderId}' in parents and (mimeType contains 'image/') and trashed=false&fields=files(id,name,mimeType,thumbnailLink,createdTime)&orderBy=createdTime desc&pageSize=1000`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        )
+        driveFetch(
+          `${DRIVE_API}/files?q='${folderId}' in parents and (mimeType contains 'image/') and trashed=false&fields=files(id,name,mimeType,thumbnailLink,createdTime)&orderBy=createdTime desc&pageSize=1000`,
+          { token: accessToken }
+        ),
       ]);
-
-      if (!foldersRes.ok || !imagesRes.ok) throw new Error('Failed to fetch folder contents');
 
       const [foldersData, imagesData] = await Promise.all([foldersRes.json(), imagesRes.json()]);
       const fetchedFolders = foldersData.files || [];
@@ -103,7 +141,7 @@ const Gallery = ({ accessToken }) => {
       setSubFolders(fetchedFolders);
       setImages(fetchedImages);
       setVisibleCount(IMAGES_PER_PAGE);
-      sessionStorage.setItem(cacheKey, JSON.stringify({ folders: fetchedFolders, images: fetchedImages }));
+      writeFolderCache(folderId, { folders: fetchedFolders, images: fetchedImages });
     } catch (err) {
       console.error('Error fetching folder contents:', err);
       setError('Failed to load contents. Please try again.');
@@ -154,12 +192,10 @@ const Gallery = ({ accessToken }) => {
         formData.append('metadata', new Blob([JSON.stringify({ name: file.name, parents: [folderId] })], { type: 'application/json' }));
         formData.append('file', file);
 
-        const response = await fetch(
-          'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,thumbnailLink,createdTime',
-          { method: 'POST', headers: { Authorization: `Bearer ${accessToken}` }, body: formData }
+        const response = await driveFetch(
+          `${UPLOAD_API}/files?uploadType=multipart&fields=id,name,mimeType,thumbnailLink,createdTime`,
+          { token: accessToken, method: 'POST', body: formData }
         );
-
-        if (!response.ok) throw new Error('Upload failed');
         uploaded.push(await response.json());
       } catch (err) {
         console.error(`Error uploading ${file.name}:`, err);
@@ -170,11 +206,9 @@ const Gallery = ({ accessToken }) => {
     if (uploaded.length) {
       setImages(prev => {
         const updated = [...uploaded, ...prev];
-        const cacheKey = `galleryFolder_${folderId}`;
-        const cached = sessionStorage.getItem(cacheKey);
+        const cached = readFolderCache(folderId);
         if (cached) {
-          const { folders } = JSON.parse(cached);
-          sessionStorage.setItem(cacheKey, JSON.stringify({ folders, images: updated }));
+          writeFolderCache(folderId, { folders: cached.folders, images: updated });
         }
         return updated;
       });
@@ -194,21 +228,14 @@ const Gallery = ({ accessToken }) => {
     if (!window.confirm(`Are you sure you want to delete "${imageName}"?`)) return;
 
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${imageId}`,
-        { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-
-      if (!response.ok && response.status !== 204) throw new Error('Delete failed');
+      await driveFetch(`${DRIVE_API}/files/${imageId}`, { token: accessToken, method: 'DELETE' });
 
       setImages(prev => {
         const updated = prev.filter(img => img.id !== imageId);
         if (currentFolderId) {
-          const cacheKey = `galleryFolder_${currentFolderId}`;
-          const cached = sessionStorage.getItem(cacheKey);
+          const cached = readFolderCache(currentFolderId);
           if (cached) {
-            const { folders } = JSON.parse(cached);
-            sessionStorage.setItem(cacheKey, JSON.stringify({ folders, images: updated }));
+            writeFolderCache(currentFolderId, { folders: cached.folders, images: updated });
           }
         }
         return updated;
@@ -221,46 +248,37 @@ const Gallery = ({ accessToken }) => {
     }
   };
 
-  // Use thumbnailLink at its original =s220 size — Google caches this aggressively.
-  // Requesting larger sizes (=s400) for 20+ images simultaneously triggers 429 Too Many Requests.
-  const getImageUrl = (image) => {
-    if (image.thumbnailLink) {
-      return image.thumbnailLink; // original =s220, no upscaling
-    }
-    return `https://www.googleapis.com/drive/v3/files/${image.id}?alt=media&access_token=${accessToken}`;
-  };
+  const currentImages = useMemo(() => images.slice(0, visibleCount), [images, visibleCount]);
+  const hasMoreImages = visibleCount < images.length;
 
   // Fetch full-size image using Bearer token → blob URL (reliable, no cookie needed)
-  const fetchFullImage = async (image, index) => {
+  const fetchFullImage = useCallback(async (image, index) => {
     setLoadingFullImage(true);
     setSelectedImage(image);
     setCurrentImageIndex(index);
     setFullImageUrl(null);
+    setFullImageError(false);
 
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${image.id}?alt=media`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      if (!response.ok) throw new Error('Failed to load image');
+      const response = await driveFetch(`${DRIVE_API}/files/${image.id}?alt=media`, { token: accessToken });
       const blob = await response.blob();
       setFullImageUrl(URL.createObjectURL(blob));
     } catch (err) {
       console.error('Error loading full image:', err);
-      setFullImageUrl(`https://www.googleapis.com/drive/v3/files/${image.id}?alt=media&access_token=${accessToken}`);
+      setFullImageError(true);
     } finally {
       setLoadingFullImage(false);
     }
-  };
+  }, [accessToken]);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     if (fullImageUrl && fullImageUrl.startsWith('blob:')) {
       URL.revokeObjectURL(fullImageUrl);
     }
     setSelectedImage(null);
     setFullImageUrl(null);
     setCurrentImageIndex(-1);
-  };
+  }, [fullImageUrl]);
 
   const navigateToFolder = (folder) => {
     setFolderPath(prev => [...prev, { id: folder.id, name: folder.name }]);
@@ -273,11 +291,10 @@ const Gallery = ({ accessToken }) => {
       const newPath = prev.slice(0, index + 1);
       const target = newPath[index];
       setCurrentFolderId(target.id);
-      const cached = sessionStorage.getItem(`galleryFolder_${target.id}`);
+      const cached = readFolderCache(target.id);
       if (cached) {
-        const { folders, images: imgs } = JSON.parse(cached);
-        setSubFolders(folders || []);
-        setImages(imgs || []);
+        setSubFolders(cached.folders || []);
+        setImages(cached.images || []);
         setVisibleCount(IMAGES_PER_PAGE);
       } else {
         fetchFolderContents(target.id);
@@ -286,28 +303,25 @@ const Gallery = ({ accessToken }) => {
     });
   };
 
-  const currentImages = images.slice(0, visibleCount);
-  const hasMoreImages = visibleCount < images.length;
-
   const loadMore = () => {
     setVisibleCount(prev => Math.min(prev + IMAGES_PER_PAGE, images.length));
   };
 
-  const goToPreviousImage = () => {
+  const goToPreviousImage = useCallback(() => {
     if (currentImageIndex > 0) {
       const prevIndex = currentImageIndex - 1;
       if (fullImageUrl && fullImageUrl.startsWith('blob:')) URL.revokeObjectURL(fullImageUrl);
       fetchFullImage(currentImages[prevIndex], prevIndex);
     }
-  };
+  }, [currentImageIndex, fullImageUrl, currentImages, fetchFullImage]);
 
-  const goToNextImage = () => {
+  const goToNextImage = useCallback(() => {
     if (currentImageIndex < currentImages.length - 1) {
       const nextIndex = currentImageIndex + 1;
       if (fullImageUrl && fullImageUrl.startsWith('blob:')) URL.revokeObjectURL(fullImageUrl);
       fetchFullImage(currentImages[nextIndex], nextIndex);
     }
-  };
+  }, [currentImageIndex, fullImageUrl, currentImages, fetchFullImage]);
 
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchMove = (e) => { touchEndX.current = e.touches[0].clientX; };
@@ -327,7 +341,7 @@ const Gallery = ({ accessToken }) => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedImage, currentImageIndex, currentImages]);
+  }, [selectedImage, goToPreviousImage, goToNextImage, closeModal]);
 
   if (loading) {
     return (
@@ -419,19 +433,7 @@ const Gallery = ({ accessToken }) => {
                   className="gallery-item"
                   onClick={() => fetchFullImage(image, index)}
                 >
-                  <img
-                    src={getImageUrl(image)}
-                    alt={image.name}
-                    loading="lazy"
-                    onError={(e) => {
-                      if (!e.target.dataset.errored) {
-                        e.target.dataset.errored = 'true';
-                        e.target.src = `https://www.googleapis.com/drive/v3/files/${image.id}?alt=media&access_token=${accessToken}`;
-                      } else {
-                        e.target.style.display = 'none';
-                      }
-                    }}
-                  />
+                  <AuthedImage image={image} accessToken={accessToken} alt={image.name} loading="lazy" />
                   <div className="gallery-item-overlay">
                     <span className="gallery-item-name">{image.name}</span>
                   </div>
@@ -498,6 +500,10 @@ const Gallery = ({ accessToken }) => {
               <div className="modal-loading">
                 <div className="loading-spinner"></div>
                 <p>Loading image...</p>
+              </div>
+            ) : fullImageError ? (
+              <div className="modal-loading">
+                <p>Failed to load image.</p>
               </div>
             ) : (
               <img src={fullImageUrl} alt={selectedImage.name} />

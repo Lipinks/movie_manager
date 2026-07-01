@@ -1129,3 +1129,72 @@
     margin-left: 3px;
   }
 }
+
+/* ====================================
+   MOBILE LAYOUT: stack the sidebar
+   ==================================== */
+@media (max-width: 768px) {
+  /* The sidebar + content sit side-by-side on desktop; stack them on phones. */
+  .videos-page.with-sidebar {
+    flex-direction: column;
+  }
+
+  .videos-left-sidebar {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  /* Cap the star list so it doesn't push the video grid far down the page. */
+  .sidebar-stars-section {
+    overflow: visible;
+  }
+
+  .sidebar-star-list {
+    max-height: 220px;
+  }
+
+  .sidebar-star-profile .sidebar-star-image {
+    height: 180px;
+    max-width: 260px;
+  }
+
+  .videos-main-content,
+  .videos-page.with-sidebar .videos-main-content {
+    padding: 12px;
+  }
+
+  .videos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+  }
+}
+
+/* ====================================
+   TOUCH DEVICES: no :hover, so reveal the
+   card overlay, action buttons and tags that
+   are otherwise hidden until hover.
+   ==================================== */
+@media (hover: none) {
+  .card-content {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.25), transparent);
+  }
+
+  .card-actions {
+    opacity: 1;
+    transform: none;
+  }
+
+  .video-duration-tag,
+  .video-vpn-tag {
+    opacity: 1;
+    transform: none;
+  }
+}

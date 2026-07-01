@@ -1,6 +1,6 @@
 import './AddVidDialog.css';
 
-const AddStarDialog = ({ newFavorite, setNewFavorite, handleAddFavorite, setShowVidAddModal }) => {
+const AddVidDialog = ({ newFavorite, setNewFavorite, handleAddFavorite, setShowVidAddModal }) => {
   return (
     <div className="add-vid-overlay">
       <div className="add-vid-dialog">
@@ -44,4 +44,4 @@ const AddStarDialog = ({ newFavorite, setNewFavorite, handleAddFavorite, setShow
   );
 };
 
-export default AddStarDialog;
+export default AddVidDialog;

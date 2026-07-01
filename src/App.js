@@ -33,7 +33,8 @@ const BigAndBingApp = () => {
   const initTokenClient = useCallback(() => {
     if (window.google && window.google.accounts) {
       const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: "567189276629-9tkesauoqldd41mnr5gdeh0t2ii67432.apps.googleusercontent.com",
+        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID
+          || "567189276629-9tkesauoqldd41mnr5gdeh0t2ii67432.apps.googleusercontent.com",
         scope: "https://www.googleapis.com/auth/drive",
         callback: handleAuthResponse,
       });

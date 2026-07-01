@@ -299,6 +299,26 @@
 }
 
 /* -- Responsive ----------------------- */
+@media (max-width: 600px) {
+  .edit-vid-dialog .label-input {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .edit-vid-dialog .label-content {
+    width: auto;
+  }
+
+  .edit-vid-dialog .label-input-row {
+    flex-wrap: wrap;
+  }
+
+  .edit-vid-dialog .duration-input input {
+    width: 100%;
+  }
+}
+
 @media (max-width: 480px) {
   .edit-vid-dialog {
     padding: 20px 16px;

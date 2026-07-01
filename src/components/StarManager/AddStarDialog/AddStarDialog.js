@@ -1,6 +1,7 @@
 import './AddStarDialog.css';
+import TagEditor from '../../common/TagEditor';
 
-const AddStarDialog = ({newStar,handleInputChange,handleAddTagToStar,handleRemoveTag,handleCreateNewTag,handleKeyPress,closeAddStarModal,handleSave,tags,newTag,setNewTag})=> {
+const AddStarDialog = ({ newStar, handleInputChange, handleAddTagToStar, handleRemoveTag, handleCreateNewTag, closeAddStarModal, handleSave, tags }) => {
   return (
     <div className="add-star-overlay">
       <div className="add-star-dialog">
@@ -12,7 +13,6 @@ const AddStarDialog = ({newStar,handleInputChange,handleAddTagToStar,handleRemov
             placeholder="Name"
             value={newStar.Name}
             onChange={handleInputChange}
-
           />
           <input
             type="url"
@@ -22,15 +22,21 @@ const AddStarDialog = ({newStar,handleInputChange,handleAddTagToStar,handleRemov
             onChange={handleInputChange}
           />
         </div>
-        
-         
-          
-          <div className="create-new-tag">
-            <button onClick={handleSave} className="save-btn">Save Star</button>
-            <button onClick={closeAddStarModal} className="cancel-btn">Cancel</button>
-          </div>
+
+        <TagEditor
+          selectedTags={newStar.Tags}
+          availableTags={tags}
+          onAdd={handleAddTagToStar}
+          onRemove={handleRemoveTag}
+          onCreate={handleCreateNewTag}
+        />
+
+        <div className="create-new-tag">
+          <button onClick={handleSave} className="save-btn">Save Star</button>
+          <button onClick={closeAddStarModal} className="cancel-btn">Cancel</button>
         </div>
       </div>
+    </div>
   );
 };
 

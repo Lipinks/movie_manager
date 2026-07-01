@@ -71,3 +71,35 @@
     color: #666;
     font-size: 14px;
   }
+
+  /* ── Responsive grid ── */
+  @media (max-width: 900px) {
+    .stars-grid {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .stars-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .image-container {
+      height: 170px;
+    }
+
+    .star-info h3 {
+      font-size: 15px;
+    }
+  }
+
+  /* Touch devices have no hover: keep the delete button visible and legible. */
+  @media (hover: none) {
+    .delete-star-btn {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 6px;
+    }
+  }

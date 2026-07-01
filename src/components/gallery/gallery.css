@@ -212,6 +212,12 @@
   transition: transform 0.3s ease;
 }
 
+.gallery-img-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
 .gallery-item:hover img {
   transform: scale(1.02);
 }
