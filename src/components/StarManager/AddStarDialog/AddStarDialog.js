@@ -1,5 +1,4 @@
 import './AddStarDialog.css';
-import TagEditor from '../../common/TagEditor';
 
 const AddStarDialog = ({ newStar, handleInputChange, handleAddTagToStar, handleRemoveTag, handleCreateNewTag, closeAddStarModal, handleSave, tags }) => {
   return (
@@ -22,14 +21,6 @@ const AddStarDialog = ({ newStar, handleInputChange, handleAddTagToStar, handleR
             onChange={handleInputChange}
           />
         </div>
-
-        <TagEditor
-          selectedTags={newStar.Tags}
-          availableTags={tags}
-          onAdd={handleAddTagToStar}
-          onRemove={handleRemoveTag}
-          onCreate={handleCreateNewTag}
-        />
 
         <div className="create-new-tag">
           <button onClick={handleSave} className="save-btn">Save Star</button>

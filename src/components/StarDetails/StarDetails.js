@@ -17,7 +17,14 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
   const [editedStar, setEditedStar] = useState(star || { Name: '', Image_Link: '', Tags: [] });
   const [availableTags, setAvailableTags] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [newFavorite, setNewFavorite] = useState({ name: '', imageUrl: '', url: '' });
+  const [newFavorite, setNewFavorite] = useState({
+    name: '',
+    imageUrl: '',
+    url: '',
+    videoDuration: '',
+    isVPN: false,
+    tags: [],
+  });
   const [showVidEditModal, setShowVidEditModal] = useState(false);
   const [showVidsModal, setShowVidAddModal] = useState(false);
   // Bumped after adding a video so the embedded VideosPage re-reads storage
@@ -60,6 +67,14 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
     handleAddTagToStar(tag);
   };
 
+  const handleCreateNewVideoTag = (tag) => {
+    if (!availableTags.includes(tag)) {
+      const updatedAvail = [...availableTags, tag];
+      setAvailableTags(updatedAvail);
+      storage.setItem(storage.KEYS.TAGS, updatedAvail);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEditedStar(prev => ({ ...prev, [name]: value }));
@@ -92,7 +107,14 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
     currentFavs[starName] = updatedFavorites;
     storage.setItem(storage.KEYS.FAVORITES, currentFavs);
     setFavorites(updatedFavorites);
-    setNewFavorite({ name: '', imageUrl: '', url: '', tags: [] });
+    setNewFavorite({
+      name: '',
+      imageUrl: '',
+      url: '',
+      videoDuration: '',
+      isVPN: false,
+      tags: [],
+    });
     setShowVidAddModal(false);
     setReloadKey(k => k + 1);
   };
@@ -121,6 +143,8 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
           newFavorite={newFavorite}
           setNewFavorite={setNewFavorite}
           handleAddFavorite={handleAddFavorite}
+          tags={availableTags}
+          handleCreateNewTag={handleCreateNewVideoTag}
           setShowVidAddModal={setShowVidAddModal} />
       )}
 

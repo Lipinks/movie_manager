@@ -286,6 +286,18 @@
   transform: translateY(-1px);
 }
 
+/* -- Floating Thumbnail Preview ------- */
+.edit-vid-overlay .edit-vid-floating-preview {
+  position: fixed;
+  top: 50%;
+  left: calc(50% + 430px);
+  transform: translateY(-50%);
+  z-index: 1001;
+  width: 320px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 215, 0, 0.35);
+}
+
 /* -- Scrollbars ----------------------- */
 .edit-vid-dialog .selected-tags::-webkit-scrollbar,
 .edit-vid-dialog .available-tags::-webkit-scrollbar {
@@ -300,6 +312,10 @@
 
 /* -- Responsive ----------------------- */
 @media (max-width: 600px) {
+  .edit-vid-overlay .edit-vid-floating-preview {
+    display: none;
+  }
+
   .edit-vid-dialog .label-input {
     flex-direction: column;
     align-items: stretch;
@@ -316,6 +332,12 @@
 
   .edit-vid-dialog .duration-input input {
     width: 100%;
+  }
+}
+
+@media (max-width: 1280px) {
+  .edit-vid-overlay .edit-vid-floating-preview {
+    display: none;
   }
 }
 

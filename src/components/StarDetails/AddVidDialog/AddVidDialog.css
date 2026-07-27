@@ -61,6 +61,21 @@
   font-size: 0.9rem;
 }
 
+.add-vid-dialog .label-input {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.add-vid-dialog .label-content {
+  width: 120px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #334155;
+}
+
 /* -- Inputs --------------------------- */
 .add-vid-dialog input[type="text"],
 .add-vid-dialog input[type="url"] {
@@ -84,6 +99,75 @@
 .add-vid-dialog input::placeholder {
   color: #a0a0a0;
   font-size: 13px;
+}
+
+.add-vid-dialog .label-input-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-top: 10px;
+}
+
+.add-vid-dialog .duration-input {
+  flex: 0 0 auto;
+}
+
+.add-vid-dialog .duration-input input {
+  width: 95px;
+  text-align: center;
+}
+
+.add-vid-dialog .vpn-input {
+  flex: 0 0 auto;
+  min-width: 120px;
+}
+
+.add-vid-dialog .vpn-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s ease;
+}
+
+.add-vid-dialog .vpn-checkbox-label:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.add-vid-dialog .vpn-checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #ef4444;
+}
+
+.add-vid-dialog .vpn-checkbox-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.add-vid-dialog .vpn-checkbox-label:has(input:checked) {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.add-vid-dialog .vpn-checkbox-label:has(input:checked) .vpn-checkbox-text {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.add-vid-dialog .tag-section {
+  margin: 16px 0;
+  padding: 16px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(218, 165, 32, 0.15);
 }
 
 /* -- Buttons -------------------------- */
@@ -123,4 +207,49 @@
 .add-vid-dialog .save-btn:hover,
 .add-vid-dialog .cancel-btn:hover {
   transform: translateY(-1px);
+}
+
+/* -- Floating Thumbnail Preview ------- */
+.add-vid-floating-preview {
+  position: fixed;
+  top: 50%;
+  left: calc(50% + 380px);
+  transform: translateY(-50%);
+  z-index: 1001;
+  width: 320px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 215, 0, 0.35);
+}
+
+/* -- Responsive ----------------------- */
+@media (max-width: 1200px) {
+  .add-vid-floating-preview {
+    left: calc(50% + 340px);
+  }
+}
+
+@media (max-width: 1160px) {
+  .add-vid-floating-preview {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .add-vid-dialog .label-input {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .add-vid-dialog .label-content {
+    width: auto;
+  }
+
+  .add-vid-dialog .label-input-row {
+    flex-wrap: wrap;
+  }
+
+  .add-vid-dialog .duration-input input {
+    width: 100%;
+  }
 }
