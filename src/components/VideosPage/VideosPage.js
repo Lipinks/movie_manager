@@ -209,6 +209,13 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
 
   return (
     <div className={`videos-page with-sidebar ${isMainVideosTab ? 'with-header-padding' : ''}`}>
+      {!isMainVideosTab && starImage && (
+        <div
+          className="videos-bg"
+          style={{ backgroundImage: `url("${starImage}")` }}
+          aria-hidden="true"
+        />
+      )}
       <aside className="videos-left-sidebar">
         {!isMainVideosTab && starImage && (
           <div className="sidebar-star-profile">
@@ -271,7 +278,20 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
         )}
       </aside>
 
-      <div className="videos-main-content">
+      <div
+          className="videos-main-content"
+          style={
+            !isMainVideosTab
+              ? {
+                  backgroundImage: `linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url(${starImage})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  minHeight: "100vh",
+                }
+              : {}
+          }
+        >
         {renderVideoContent()}
       </div>
 
