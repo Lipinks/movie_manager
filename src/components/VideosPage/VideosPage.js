@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './VideosPage.css';
 import EditVidDialog from './EditVidDialog/EditVidDialog';
+import AddVidDialog from '../StarDetails/AddVidDialog/AddVidDialog';
 import Dropdown from '../common/Dropdown';
 import * as storage from '../../utils/storage';
+import { nowInIST } from '../../utils/dateUtils';
 
 const sortOptions = [
   { value: 'creation', label: 'Creation Time' },
@@ -24,8 +26,18 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
   const [selectedSort, setSelectedSort] = useState('');
   const [selectedOrder, setSelectedOrder] = useState('new');
   const [selectedStar, setSelectedStar] = useState('');
-  const [starNames, setStarNames] = useState([]);
   const [starSearch, setStarSearch] = useState('');
+  const [allStars, setAllStars] = useState([]);
+  const [showAddVidModal, setShowAddVidModal] = useState(false);
+  const [newFavorite, setNewFavorite] = useState({
+    name: '',
+    imageUrl: '',
+    url: '',
+    videoDuration: '',
+    isVPN: false,
+    tags: [],
+    starName: '',
+  });
 
   // Shuffle array function
   const shuffleArray = (array) => {
@@ -45,12 +57,6 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
       if (videosData) {
         let flattened = [];
         if (starName === '') {
-          // Extract star names that have videos
-          const names = Object.keys(videosData)
-            .filter(name => videosData[name] && videosData[name].length > 0)
-            .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-          setStarNames(names);
-
           flattened = Object.entries(videosData).flatMap(([name, favorites]) =>
             favorites.map(favorite => ({ ...favorite, starName: name }))
           );
@@ -67,6 +73,11 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
     };
     loadData();
   }, [starName, reloadKey]);
+
+  useEffect(() => {
+    const starsData = storage.getItem(storage.KEYS.STARS, []);
+    setAllStars(Array.isArray(starsData) ? starsData : []);
+  }, []);
 
   const handleShuffle = () => {
     setVideos(shuffleArray(videos));
@@ -135,6 +146,51 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
     }
   };
 
+  const handleCreateNewTag = (newTag) => {
+    if (newTag.trim() && !availableTags.includes(newTag.trim())) {
+      const updatedTags = [...availableTags, newTag.trim()];
+      setAvailableTags(updatedTags);
+      storage.setItem(storage.KEYS.TAGS, updatedTags);
+    }
+  };
+
+  // Add-video-from-the-main-page flow: same shape as StarDetails' handleAddFavorite,
+  // except the target star is chosen via a dropdown instead of being implicit.
+  const handleAddVideo = () => {
+    if (!newFavorite.name || !newFavorite.imageUrl || !newFavorite.starName) {
+      alert('Please fill in name, image URL, and select a star');
+      return;
+    }
+
+    const starKey = newFavorite.starName.toLowerCase();
+    const { starName: _starName, ...favoriteFields } = newFavorite;
+    const favorite = {
+      ...favoriteFields,
+      id: Date.now(),
+      tags: newFavorite.tags || [],
+      creation: nowInIST(),
+    };
+
+    const currentFavs = storage.getItem(storage.KEYS.FAVORITES, {});
+    const starFavorites = currentFavs[starKey] || [];
+    currentFavs[starKey] = [...starFavorites, favorite];
+    storage.setItem(storage.KEYS.FAVORITES, currentFavs);
+
+    setVideos(prev => [...prev, { ...favorite, starName: starKey }]);
+
+    setNewFavorite({ name: '', imageUrl: '', url: '', videoDuration: '', isVPN: false, tags: [], starName: '' });
+    setShowAddVidModal(false);
+  };
+
+  // All stars in the roster, including ones with zero videos (not just the
+  // ones that show up in the favorites map).
+  const starNames = useMemo(
+    () => allStars
+      .map(star => star.Name.toLowerCase())
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })),
+    [allStars]
+  );
+
   const filteredStarNames = useMemo(() => {
     if (!starSearch.trim()) return starNames;
     return starNames.filter(name => name.toLowerCase().includes(starSearch.toLowerCase()));
@@ -149,6 +205,11 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
   const filterOptions = useMemo(
     () => [{ value: '', label: 'All Categories' }, ...availableTags.map(tag => ({ value: tag, label: tag }))],
     [availableTags]
+  );
+
+  const starSelectOptions = useMemo(
+    () => allStars.map(star => ({ value: star.Name, label: star.Name })),
+    [allStars]
   );
 
   // Filter/Sort/Order controls (shared between sidebar and inline)
@@ -233,6 +294,13 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
             </div>
           </div>
         )}
+        {isMainVideosTab && (
+          <div className="sidebar-add-video-section">
+            <button className="sidebar-action-btn sidebar-add-vid-btn" onClick={() => setShowAddVidModal(true)}>
+              📺 Add Video
+            </button>
+          </div>
+        )}
         <div className="sidebar-controls-section">
           <h3 className="sidebar-section-title">Controls</h3>
           {renderFilterControls()}
@@ -296,26 +364,29 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
       </div>
 
       {editingVideo && showEditVidModal && (
-        <div className="edit-vid-overlay">
-          <div className="edit-vid-dialog">
-            <EditVidDialog
-              editingVideo={editingVideo}
-              handleEditFavorite={handleEditVideo}
-              setEditingVideo={() => {
-                setEditingVideo(null);
-                setShowEditVidModal(false);
-              }}
-              tags={availableTags}
-              handleCreateNewTag={(newTag) => {
-                if (newTag.trim() && !availableTags.includes(newTag.trim())) {
-                  const updatedTags = [...availableTags, newTag.trim()];
-                  setAvailableTags(updatedTags);
-                  storage.setItem(storage.KEYS.TAGS, updatedTags);
-                }
-              }}
-            />
-          </div>
-        </div>
+        <EditVidDialog
+          editingVideo={editingVideo}
+          handleEditFavorite={handleEditVideo}
+          setEditingVideo={() => {
+            setEditingVideo(null);
+            setShowEditVidModal(false);
+          }}
+          tags={availableTags}
+          handleCreateNewTag={handleCreateNewTag}
+        />
+      )}
+
+      {showAddVidModal && (
+        <AddVidDialog
+          newFavorite={newFavorite}
+          setNewFavorite={setNewFavorite}
+          handleAddFavorite={handleAddVideo}
+          setShowVidAddModal={setShowAddVidModal}
+          tags={availableTags}
+          handleCreateNewTag={handleCreateNewTag}
+          starOptions={starSelectOptions}
+          onStarChange={(value) => setNewFavorite(prev => ({ ...prev, starName: value }))}
+        />
       )}
     </div>
   );

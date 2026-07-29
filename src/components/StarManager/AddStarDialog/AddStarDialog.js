@@ -1,8 +1,10 @@
 import './AddStarDialog.css';
+import ThumbnailPreview from '../../common/ThumbnailPreview';
 
 const AddStarDialog = ({ newStar, handleInputChange, handleAddTagToStar, handleRemoveTag, handleCreateNewTag, closeAddStarModal, handleSave, tags }) => {
   return (
     <div className="add-star-overlay">
+      <ThumbnailPreview imageUrl={newStar.Image_Link} className="add-star-floating-preview" />
       <div className="add-star-dialog">
         <div className="name-input-section">
           <div className='add-new-star'>Add New Star</div>

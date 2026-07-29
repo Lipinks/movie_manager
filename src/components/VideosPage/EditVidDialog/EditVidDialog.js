@@ -36,18 +36,21 @@ const EditVidDialog = ({ editingVideo, handleEditFavorite, setEditingVideo, tags
   };
 
   return (
-    <div className="edit-dialog">
+    <div className="edit-vid-overlay">
       <ThumbnailPreview imageUrl={formData.imageUrl} className="edit-vid-floating-preview" />
-      <VideoFormFields
-        formData={formData}
-        setFormData={setFormData}
-        tags={tags}
-        handleCreateNewTag={handleCreateNewTag}
-        showPreview={false}
-      />
-      <div className="create-new-tag">
-        <button onClick={handleSave} className="save-btn">Save Changes</button>
-        <button onClick={() => setEditingVideo(null)} className="cancel-btn">Cancel</button>
+      <div className="edit-vid-dialog">
+        <h2 className="edit_video_text">Edit Video</h2>
+        <VideoFormFields
+          formData={formData}
+          setFormData={setFormData}
+          tags={tags}
+          handleCreateNewTag={handleCreateNewTag}
+          showPreview={false}
+        />
+        <div className="modal-buttons">
+          <button onClick={handleSave} className="save-btn">Save Changes</button>
+          <button onClick={() => setEditingVideo(null)} className="cancel-btn">Cancel</button>
+        </div>
       </div>
     </div>
   );

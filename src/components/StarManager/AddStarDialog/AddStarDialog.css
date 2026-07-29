@@ -136,6 +136,24 @@
   transform: translateY(0);
 }
 
+/* -- Floating Thumbnail Preview ------- */
+.add-star-overlay .add-star-floating-preview {
+  position: fixed;
+  top: 50%;
+  right: calc(50% + 240px + 30px);
+  transform: translateY(-50%);
+  z-index: 1001;
+  width: 320px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 215, 0, 0.35);
+}
+
+@media (max-width: 1100px) {
+  .add-star-overlay .add-star-floating-preview {
+    display: none;
+  }
+}
+
 /* -- Responsive ----------------------- */
 @media (max-width: 480px) {
   .add-star-dialog {

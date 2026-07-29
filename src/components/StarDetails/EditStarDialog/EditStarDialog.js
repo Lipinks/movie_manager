@@ -1,9 +1,10 @@
 import './EditStarDialog.css';
-import TagEditor from '../../common/TagEditor';
+import ThumbnailPreview from '../../common/ThumbnailPreview';
 
-const EditStarDialog = ({ editedStar, handleInputChange, handleEditSave, setShowVidEditModal, handleAddTagToStar, handleRemoveTagFromStar, availableTags, handleCreateNewTag }) => {
+const EditStarDialog = ({ editedStar, handleInputChange, handleEditSave, setShowVidEditModal }) => {
   return (
       <div className="edit-star-overlay">
+        <ThumbnailPreview imageUrl={editedStar.Image_Link} className="edit-star-floating-preview" />
         <div className="edit-star-dialog">
           <div className="edit-star-header">
             <h2><i className="fas fa-user-edit"></i> Edit Star Profile</h2>
@@ -50,16 +51,6 @@ const EditStarDialog = ({ editedStar, handleInputChange, handleEditSave, setShow
                 </div>
               </div>
               <div className="input-hint">Enter a valid image URL (JPG, PNG, GIF)</div>
-            </div>
-
-            <div className="input-group">
-              <TagEditor
-                selectedTags={Array.isArray(editedStar.Tags) ? editedStar.Tags : []}
-                availableTags={availableTags}
-                onAdd={handleAddTagToStar}
-                onRemove={handleRemoveTagFromStar}
-                onCreate={handleCreateNewTag}
-              />
             </div>
           </div>
 

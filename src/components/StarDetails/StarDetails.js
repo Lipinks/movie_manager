@@ -44,29 +44,6 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
     setEditedStar(star ? { ...star, Tags: Array.isArray(star.Tags) ? star.Tags : [] } : { Name: '', Image_Link: '', Tags: [] });
   }, [star]);
 
-  const handleAddTagToStar = (tag) => {
-    setEditedStar(prev => {
-      const existing = Array.isArray(prev.Tags) ? prev.Tags : [];
-      return existing.includes(tag) ? prev : { ...prev, Tags: [...existing, tag] };
-    });
-  };
-
-  const handleRemoveTagFromStar = (tag) => {
-    setEditedStar(prev => ({
-      ...prev,
-      Tags: (Array.isArray(prev.Tags) ? prev.Tags : []).filter(t => t !== tag),
-    }));
-  };
-
-  const handleCreateNewTag = (tag) => {
-    if (!availableTags.includes(tag)) {
-      const updatedAvail = [...availableTags, tag];
-      setAvailableTags(updatedAvail);
-      storage.setItem(storage.KEYS.TAGS, updatedAvail);
-    }
-    handleAddTagToStar(tag);
-  };
-
   const handleCreateNewVideoTag = (tag) => {
     if (!availableTags.includes(tag)) {
       const updatedAvail = [...availableTags, tag];
@@ -131,10 +108,6 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
           handleInputChange={handleInputChange}
           handleEditSave={handleEditSave}
           setShowVidEditModal={setShowVidEditModal}
-          handleAddTagToStar={handleAddTagToStar}
-          handleRemoveTagFromStar={handleRemoveTagFromStar}
-          handleCreateNewTag={handleCreateNewTag}
-          availableTags={availableTags}
         />
       )}
 

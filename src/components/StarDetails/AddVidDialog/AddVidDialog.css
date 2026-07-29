@@ -210,10 +210,10 @@
 }
 
 /* -- Floating Thumbnail Preview ------- */
-.add-vid-floating-preview {
+.add-vid-overlay .add-vid-floating-preview {
   position: fixed;
   top: 50%;
-  left: calc(50% + 380px);
+  right: calc(50% + 300px + 30px);
   transform: translateY(-50%);
   z-index: 1001;
   width: 320px;
@@ -222,14 +222,8 @@
 }
 
 /* -- Responsive ----------------------- */
-@media (max-width: 1200px) {
-  .add-vid-floating-preview {
-    left: calc(50% + 340px);
-  }
-}
-
-@media (max-width: 1160px) {
-  .add-vid-floating-preview {
+@media (max-width: 1250px) {
+  .add-vid-overlay .add-vid-floating-preview {
     display: none;
   }
 }

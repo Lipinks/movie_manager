@@ -58,6 +58,14 @@ const StarManager = ({showAddStarModal, closeAddStarModal, updateStarDetails, st
       return;
     }
 
+    var nameExists = stars.some(
+      (star) => star.Name.toLowerCase() === newStar.Name.toLowerCase()
+    );
+    if (nameExists) {
+      alert(`A star named "${newStar.Name}" already exists`);
+      return;
+    }
+
     var updatedStars = [...stars, newStar];
     
     updateStarDetails(updatedStars);
