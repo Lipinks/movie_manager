@@ -1,7 +1,13 @@
-import * as driveService from './driveService';
-import { driveFetch, DRIVE_API, UPLOAD_API } from './driveService';
-import { withTokenRefresh } from './authService';
+import { driveFetch, driveJson, listFiles, DRIVE_API, UPLOAD_API } from './driveService';
+import { withAuth } from './authService';
 import * as storage from '../utils/storage';
+
+/**
+ * Two-way synchronisation of the app's four JSON documents with Google Drive.
+ *
+ * (Formerly `starService` — the name understated its job: stars are only one
+ * of the four files it moves.)
+ */
 
 const FILES = {
   STAR: 'star.json',
@@ -57,15 +63,14 @@ const saveFile = async (token, fileName, data, existingFile) => {
 const fetchFile = async (token, fileName, files) => {
   const file = files.find((f) => f.name === fileName);
   if (!file) return null;
-
-  const response = await driveFetch(`${DRIVE_API}/files/${file.id}?alt=media`, { token });
-  return response.json();
+  return driveJson(`${DRIVE_API}/files/${file.id}?alt=media`, { token });
 };
 
-export const saveStarFile = async (accessToken) => {
-  return withTokenRefresh(async (token) => {
+/** Push every locally stored document up to Drive. */
+export const syncToDrive = async () =>
+  withAuth(async (token) => {
     // List once, then upload all four files in parallel.
-    const files = await driveService.listFiles(token);
+    const files = await listFiles(token);
     const findFile = (name) => files.find((f) => f.name === name);
 
     const payloads = [
@@ -77,11 +82,14 @@ export const saveStarFile = async (accessToken) => {
 
     await Promise.all(payloads.map(([name, data]) => saveFile(token, name, data, findFile(name))));
   });
-};
 
-export const fetchStarFile = async (accessToken) => {
-  return withTokenRefresh(async (token) => {
-    const files = await driveService.listFiles(token);
+/**
+ * Pull every document down from Drive into localStorage.
+ * @returns the fetched stars array (the caller drives React state with it).
+ */
+export const fetchFromDrive = async () =>
+  withAuth(async (token) => {
+    const files = await listFiles(token);
 
     // Fetch all four; a failure on one must NOT wipe the others' local data.
     const [starsResult, favoritesResult, tagsResult, youtubeResult] = await Promise.allSettled([
@@ -108,4 +116,3 @@ export const fetchStarFile = async (accessToken) => {
     }
     return normalizeStars(starsResult.value);
   });
-};

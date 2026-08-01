@@ -1,0 +1,44 @@
+/* ====================================
+   VIDEO DIALOG
+   Everything structural comes from styles/modal.css and the field styling
+   from VideoFormFields.css — only the dialog width and the star picker row
+   are specific to this dialog.
+   ==================================== */
+
+/* Drives the floating preview's offset in styles/modal.css. */
+.video-dialog-overlay {
+  --modal-half-width: 300px;
+}
+
+.video-dialog {
+  max-width: 600px;
+}
+
+/* Star picker — only rendered when the dialog is opened outside a star page. */
+.video-dialog-star {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.video-dialog-star .label-content {
+  width: 120px;
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: #334155;
+}
+
+@media (max-width: 600px) {
+  .video-dialog-star {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .video-dialog-star .label-content {
+    width: auto;
+  }
+}

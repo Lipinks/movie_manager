@@ -1,131 +1,51 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddStarDialog from './AddStarDialog/AddStarDialog';
-import * as storage from '../../utils/storage';
+import * as favoritesService from '../../services/favoritesService';
+import * as starsService from '../../services/starsService';
 import './StarManager.css';
 
-const StarManager = ({showAddStarModal, closeAddStarModal, updateStarDetails, stars }) => {
-  
+const StarManager = ({ showAddStarModal, closeAddStarModal, updateStarDetails, stars }) => {
   const navigate = useNavigate();
 
-  const [newStar, setNewStar] = useState({
-    Name: '',
-    Image_Link: '',
-    Tags: [],
-  });
-  const [availableTags, setAvailableTags] = useState([]);
-
-  useEffect(() => {
-    setAvailableTags(storage.getItem(storage.KEYS.TAGS, []));
-  }, []);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewStar(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleAddTagToStar = (tag) => {
-    if (tag && !newStar.Tags.includes(tag)) {
-      setNewStar(prev => ({
-        ...prev,
-        Tags: [...prev.Tags, tag]
-      }));
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove) => {
-    setNewStar(prev => ({
-      ...prev,
-      Tags: prev.Tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-
-  const handleCreateNewTag = (tag) => {
-    if (!availableTags.includes(tag)) {
-      const updatedTags = [...availableTags, tag];
-      setAvailableTags(updatedTags);
-      storage.setItem(storage.KEYS.TAGS, updatedTags);
-    }
-    handleAddTagToStar(tag);
-  };
-
-  const handleSave = () => {
-    if (!newStar.Name || !newStar.Image_Link) {
-      alert('Please fill all fields');
-      return;
-    }
-
-    var nameExists = stars.some(
-      (star) => star.Name.toLowerCase() === newStar.Name.toLowerCase()
-    );
-    if (nameExists) {
-      alert(`A star named "${newStar.Name}" already exists`);
-      return;
-    }
-
-    var updatedStars = [...stars, newStar];
-    
-    updateStarDetails(updatedStars);
-    
-    setNewStar({
-      Name: '',
-      Image_Link: '',
-      Tags: []
-    });
-
+  const handleSave = (newStar) => {
+    updateStarDetails([...stars, newStar]);
     closeAddStarModal();
   };
 
   const handleDelete = (index) => {
-    var star = stars[index];
-    var isConfirmed = window.confirm(`Are you sure you want to delete ${star.Name}?`);
-    
-    if (isConfirmed) {
-      var newStars = stars.filter((_, i) => i !== index);
-      updateStarDetails(newStars);
-      //also delete videos associated with this star
-      var favorites = storage.getItem(storage.KEYS.FAVORITES, {});
-      delete favorites[star.Name.toLowerCase()];
-      storage.setItem(storage.KEYS.FAVORITES, favorites);
+    const star = stars[index];
+    if (!window.confirm(`Are you sure you want to delete ${star.Name}? Their videos will be removed too.`)) {
+      return;
     }
-  };
 
-  const handleImageClick = (star) => {
-    navigate(`/star/${star.Name.toLowerCase()}`);
+    updateStarDetails(stars.filter((_, i) => i !== index));
+    favoritesService.removeStar(star.Name);
   };
 
   return (
     <div className="star-manager">
       {showAddStarModal && (
         <AddStarDialog
-          newStar={newStar}
-          handleInputChange={handleInputChange}
-          handleAddTagToStar={handleAddTagToStar}
-          handleRemoveTag={handleRemoveTag}
-          handleCreateNewTag={handleCreateNewTag}
-          closeAddStarModal={closeAddStarModal}
-          handleSave={handleSave}
-          tags={availableTags}
+          onSave={handleSave}
+          onCancel={closeAddStarModal}
+          isDuplicateName={(name) => starsService.exists(stars, name)}
         />
       )}
 
       <div className="stars-grid">
         {stars.map((star, index) => (
-          <div key={index} className="star-frame">
+          <div key={star.Name} className="star-frame">
             <div className="image-container">
-              <img 
-                src={star.Image_Link} 
-                alt={star.Name} 
-                onClick={() => handleImageClick(star)}
+              <img
+                src={star.Image_Link}
+                alt={star.Name}
+                onClick={() => navigate(`/star/${encodeURIComponent(star.Name.toLowerCase())}`)}
                 style={{ cursor: 'pointer' }}
               />
-              <button 
-                onClick={() => handleDelete(index)} 
+              <button
+                onClick={() => handleDelete(index)}
                 className="delete-star-btn"
-                aria-label="Delete star"
+                aria-label={`Delete ${star.Name}`}
                 title="Delete star"
               >🚮
               </button>

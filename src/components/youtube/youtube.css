@@ -69,6 +69,19 @@
   margin-top: 50px;
 }
 
+/* -- Inline validation message -------- */
+.yt-error {
+  max-width: 640px;
+  margin: 12px auto 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--danger);
+  font-size: 14px;
+  text-align: center;
+}
+
 /* -- Videos Grid (yt- namespaced) ----- */
 .yt-videos-grid {
   display: grid;

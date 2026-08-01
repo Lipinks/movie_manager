@@ -1,20 +1,14 @@
 /* ====================================
-   EDIT STAR DIALOG - Namespaced
+   EDIT STAR DIALOG
+   Overlay and floating preview come from styles/modal.css. This dialog keeps
+   its own header/body/footer treatment, which is genuinely distinct rather
+   than duplicated.
    ==================================== */
 
-/* -- Overlay -------------------------- */
+/* Drives the floating preview's offset in styles/modal.css. */
 .edit-star-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  --modal-half-width: 280px;
   background: rgba(15, 23, 42, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
   animation: esd-fadeIn 0.3s ease;
 }
 
@@ -23,16 +17,11 @@
   to { opacity: 1; }
 }
 
-/* -- Dialog Container ----------------- */
 .edit-star-dialog {
-  background: white;
-  border-radius: 20px;
-  width: 100%;
   max-width: 560px;
-  max-height: 90vh;
-  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 20px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  position: relative;
   animation: esd-slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -82,11 +71,15 @@
 /* -- Body ----------------------------- */
 .edit-star-body {
   padding: 30px;
-  background: #f8fafc;
+  background: var(--surface-muted);
 }
 
 .edit-star-body .input-group {
   margin-bottom: 30px;
+}
+
+.edit-star-body .input-group:last-child {
+  margin-bottom: 0;
 }
 
 .edit-star-body .input-label {
@@ -97,7 +90,7 @@
 }
 
 .edit-star-body .input-label i {
-  color: #6366f1;
+  color: var(--accent-indigo);
   width: 20px;
 }
 
@@ -105,9 +98,9 @@
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-subtle);
   transition: all 0.3s ease;
-  background: white;
+  background: var(--surface);
 }
 
 .edit-star-body .input-wrapper:hover {
@@ -115,17 +108,14 @@
 }
 
 .edit-star-body .input-wrapper:focus-within {
-  border-color: #6366f1;
+  border-color: var(--accent-indigo);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.edit-star-body .input-wrapper.disabled {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-}
-
+.edit-star-body .input-wrapper.disabled,
 .edit-star-body .input-wrapper.disabled:hover {
-  border-color: #e2e8f0;
+  background: #f1f5f9;
+  border-color: var(--border-subtle);
 }
 
 .edit-star-body input {
@@ -136,6 +126,7 @@
   font-size: 1rem;
   color: #334155;
   outline: none;
+  box-sizing: border-box;
 }
 
 .edit-star-body input::placeholder {
@@ -144,7 +135,7 @@
 }
 
 .edit-star-body input:disabled {
-  color: #64748b;
+  color: var(--text-muted);
   background: transparent;
   cursor: not-allowed;
 }
@@ -159,12 +150,12 @@
 }
 
 .edit-star-body .input-wrapper.disabled .input-icon {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .edit-star-body .input-hint {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-top: 6px;
   margin-left: 5px;
   font-style: italic;
@@ -176,8 +167,8 @@
   justify-content: flex-end;
   gap: 15px;
   padding: 20px 30px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--surface-muted);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .edit-star-footer .btn {
@@ -211,33 +202,15 @@
 }
 
 .edit-star-footer .cancel-btn {
-  background: white;
-  color: #64748b;
-  border: 2px solid #e2e8f0;
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 2px solid var(--border-subtle);
 }
 
 .edit-star-footer .cancel-btn:hover {
   background: #f1f5f9;
   border-color: #cbd5e1;
   color: #475569;
-}
-
-/* -- Floating Thumbnail Preview ------- */
-.edit-star-overlay .edit-star-floating-preview {
-  position: fixed;
-  top: 50%;
-  right: calc(50% + 280px + 30px);
-  transform: translateY(-50%);
-  z-index: 1001;
-  width: 320px;
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
-  border-color: rgba(255, 215, 0, 0.35);
-}
-
-@media (max-width: 1200px) {
-  .edit-star-overlay .edit-star-floating-preview {
-    display: none;
-  }
 }
 
 /* -- Mobile ---------------------------- */

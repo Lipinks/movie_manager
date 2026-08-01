@@ -30,8 +30,13 @@ export const driveFetch = async (url, { token, headers, ...options } = {}) => {
   return response;
 };
 
+/** driveFetch + JSON decoding, for the many endpoints that return JSON. */
+export const driveJson = async (url, options) => {
+  const response = await driveFetch(url, options);
+  return response.json();
+};
+
 export const listFiles = async (token) => {
-  const response = await driveFetch(`${DRIVE_API}/files?fields=files(id,name,modifiedTime)`, { token });
-  const data = await response.json();
+  const data = await driveJson(`${DRIVE_API}/files?fields=files(id,name,modifiedTime)`, { token });
   return data.files || [];
 };

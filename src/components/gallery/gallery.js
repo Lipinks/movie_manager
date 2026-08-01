@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './gallery.css';
-import { driveFetch, DRIVE_API, UPLOAD_API } from '../../services/driveService';
+import { driveFetch, driveJson, DRIVE_API, UPLOAD_API } from '../../services/driveService';
 
 const IMAGES_PER_PAGE = 20;
 
@@ -87,24 +87,22 @@ const Gallery = ({ accessToken }) => {
 
   // Find or create the 'gallery' folder in Google Drive
   const getGalleryFolderId = useCallback(async () => {
-    const searchResponse = await driveFetch(
+    const searchData = await driveJson(
       `${DRIVE_API}/files?q=name='gallery' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`,
       { token: accessToken }
     );
-    const searchData = await searchResponse.json();
 
     if (searchData.files && searchData.files.length > 0) {
       return searchData.files[0].id;
     }
 
     // Create 'gallery' folder if it doesn't exist
-    const createResponse = await driveFetch(`${DRIVE_API}/files`, {
+    const createData = await driveJson(`${DRIVE_API}/files`, {
       token: accessToken,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'gallery', mimeType: 'application/vnd.google-apps.folder' }),
     });
-    const createData = await createResponse.json();
     return createData.id;
   }, [accessToken]);
 
@@ -123,18 +121,17 @@ const Gallery = ({ accessToken }) => {
     setError(null);
 
     try {
-      const [foldersRes, imagesRes] = await Promise.all([
-        driveFetch(
+      const [foldersData, imagesData] = await Promise.all([
+        driveJson(
           `${DRIVE_API}/files?q='${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)&orderBy=name`,
           { token: accessToken }
         ),
-        driveFetch(
+        driveJson(
           `${DRIVE_API}/files?q='${folderId}' in parents and (mimeType contains 'image/') and trashed=false&fields=files(id,name,mimeType,thumbnailLink,createdTime)&orderBy=createdTime desc&pageSize=1000`,
           { token: accessToken }
         ),
       ]);
 
-      const [foldersData, imagesData] = await Promise.all([foldersRes.json(), imagesRes.json()]);
       const fetchedFolders = foldersData.files || [];
       const fetchedImages = imagesData.files || [];
 
@@ -192,11 +189,12 @@ const Gallery = ({ accessToken }) => {
         formData.append('metadata', new Blob([JSON.stringify({ name: file.name, parents: [folderId] })], { type: 'application/json' }));
         formData.append('file', file);
 
-        const response = await driveFetch(
-          `${UPLOAD_API}/files?uploadType=multipart&fields=id,name,mimeType,thumbnailLink,createdTime`,
-          { token: accessToken, method: 'POST', body: formData }
+        uploaded.push(
+          await driveJson(
+            `${UPLOAD_API}/files?uploadType=multipart&fields=id,name,mimeType,thumbnailLink,createdTime`,
+            { token: accessToken, method: 'POST', body: formData }
+          )
         );
-        uploaded.push(await response.json());
       } catch (err) {
         console.error(`Error uploading ${file.name}:`, err);
         failed.push(file.name);
@@ -327,9 +325,9 @@ const Gallery = ({ accessToken }) => {
   const handleTouchMove = (e) => { touchEndX.current = e.touches[0].clientX; };
   const handleTouchEnd = () => {
     const diff = touchStartX.current - touchEndX.current;
-    if (Math.abs(diff) > 50) {
-      diff > 0 ? goToNextImage() : goToPreviousImage();
-    }
+    if (Math.abs(diff) <= 50) return;
+    if (diff > 0) goToNextImage();
+    else goToPreviousImage();
   };
 
   useEffect(() => {

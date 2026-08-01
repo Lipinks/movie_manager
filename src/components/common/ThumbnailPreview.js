@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import './ThumbnailPreview.css';
 
 const ThumbnailPreview = ({ imageUrl, className = '' }) => {
   const [previewError, setPreviewError] = useState(false);

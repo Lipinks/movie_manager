@@ -1,0 +1,36 @@
+/* ====================================
+   DESIGN TOKENS
+   Previously these lived inside AddStarDialog.css, which meant every other
+   stylesheet that used --gold-* silently depended on that one component's CSS
+   being bundled. They are global tokens, so they live in a global file.
+   ==================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* Brand */
+  --gold-primary: #FFD700;
+  --gold-dark: #B8860B;
+  --gold-accent: #DAA520;
+  --cream-bg: #fef9e7;
+
+  --accent-indigo: #667eea;
+  --accent-purple: #764ba2;
+
+  /* Neutrals */
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --border-subtle: #e2e8f0;
+  --text-strong: #1e293b;
+  --text-muted: #64748b;
+
+  /* Feedback */
+  --danger: #dc2626;
+
+  /* Elevation */
+  --shadow-dialog: 0 20px 40px rgba(0, 0, 0, 0.3);
+  --shadow-floating: 0 14px 30px rgba(0, 0, 0, 0.35);
+
+  /* Layering — kept together so overlays never fight each other */
+  --z-modal: 1000;
+  --z-modal-floating: 1001;
+}

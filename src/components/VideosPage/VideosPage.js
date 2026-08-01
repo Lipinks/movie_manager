@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './VideosPage.css';
-import EditVidDialog from './EditVidDialog/EditVidDialog';
-import AddVidDialog from '../StarDetails/AddVidDialog/AddVidDialog';
+import VideoDialog from '../common/VideoDialog';
 import Dropdown from '../common/Dropdown';
-import * as storage from '../../utils/storage';
-import { nowInIST } from '../../utils/dateUtils';
+import * as favoritesService from '../../services/favoritesService';
+import * as starsService from '../../services/starsService';
+import * as tagService from '../../services/tagService';
+import { toStarKey, toDisplayName } from '../../utils/starName';
 
 const sortOptions = [
   { value: 'creation', label: 'Creation Time' },
@@ -16,88 +17,94 @@ const orderOptions = [
   { value: 'old', label: 'Oldest First' },
 ];
 
-const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) => {
+const byName = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+
+const shuffle = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+/**
+ * Video browser, used both as the standalone /videos page (starName === '')
+ * and embedded in a star's page (starName set). All reads and writes go
+ * through favoritesService so the storage shape lives in exactly one place.
+ */
+const VideosPage = ({ starName = '', starImage, onEditStar }) => {
+  const isMainVideosTab = starName === '';
 
   const [videos, setVideos] = useState([]);
-  const [availableTags, setAvailableTags] = useState([]);
+  const [availableTags, setAvailableTags] = useState(() => tagService.getTags());
+  // The full roster, so stars with zero videos still appear in the sidebar
+  // and in the add-video star picker.
+  const [roster] = useState(() => starsService.getStars());
+
   const [selectedTag, setSelectedTag] = useState('');
-  const [editingVideo, setEditingVideo] = useState(null);
-  const [showEditVidModal, setShowEditVidModal] = useState(false);
   const [selectedSort, setSelectedSort] = useState('');
   const [selectedOrder, setSelectedOrder] = useState('new');
   const [selectedStar, setSelectedStar] = useState('');
   const [starSearch, setStarSearch] = useState('');
-  const [allStars, setAllStars] = useState([]);
-  const [showAddVidModal, setShowAddVidModal] = useState(false);
-  const [newFavorite, setNewFavorite] = useState({
-    name: '',
-    imageUrl: '',
-    url: '',
-    videoDuration: '',
-    isVPN: false,
-    tags: [],
-    starName: '',
-  });
 
-  // Shuffle array function
-  const shuffleArray = (array) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
+  const [editingVideo, setEditingVideo] = useState(null);
+  const [showAddVideo, setShowAddVideo] = useState(false);
+
+  const reload = useCallback(() => {
+    setVideos(isMainVideosTab ? favoritesService.listAll() : favoritesService.listForStar(starName));
+    setAvailableTags(tagService.getTags());
+  }, [isMainVideosTab, starName]);
 
   useEffect(() => {
-    const loadData = () => {
-      const videosData = storage.getItem(storage.KEYS.FAVORITES, null);
-      const tagsData = storage.getItem(storage.KEYS.TAGS, null);
+    reload();
+  }, [reload]);
 
-      if (videosData) {
-        let flattened = [];
-        if (starName === '') {
-          flattened = Object.entries(videosData).flatMap(([name, favorites]) =>
-            favorites.map(favorite => ({ ...favorite, starName: name }))
-          );
-        } else {
-          const starNameLowerCase = starName.toLowerCase();
-          flattened = (videosData[starNameLowerCase] || []).map(favorite => ({ ...favorite, starName: starNameLowerCase }));
-        }
-        setVideos(flattened);
-      }
+  /* ---------------------------------------------------------------- *
+   * Derived data
+   * ---------------------------------------------------------------- */
 
-      if (Array.isArray(tagsData)) {
-        setAvailableTags(tagsData.sort());
-      }
-    };
-    loadData();
-  }, [starName, reloadKey]);
+  const videoCountByStar = useMemo(
+    () =>
+      videos.reduce((counts, video) => {
+        counts[video.starName] = (counts[video.starName] || 0) + 1;
+        return counts;
+      }, {}),
+    [videos]
+  );
 
-  useEffect(() => {
-    const starsData = storage.getItem(storage.KEYS.STARS, []);
-    setAllStars(Array.isArray(starsData) ? starsData : []);
-  }, []);
+  // Roster first, then any star that still owns videos but has left the
+  // roster, so no video can become unreachable.
+  const starNames = useMemo(() => {
+    const names = new Set(roster.map((star) => toStarKey(star.Name)));
+    videos.forEach((video) => names.add(video.starName));
+    return [...names].sort(byName);
+  }, [roster, videos]);
 
-  const handleShuffle = () => {
-    setVideos(shuffleArray(videos));
-  };
+  const filteredStarNames = useMemo(() => {
+    const query = starSearch.trim().toLowerCase();
+    return query ? starNames.filter((name) => name.includes(query)) : starNames;
+  }, [starNames, starSearch]);
 
-  // Filter and sort videos based on selected star, tag and sort option.
+  const filterOptions = useMemo(
+    () => [{ value: '', label: 'All Categories' }, ...availableTags.map((tag) => ({ value: tag, label: tag }))],
+    [availableTags]
+  );
+
+  const starSelectOptions = useMemo(
+    () => roster.map((star) => ({ value: star.Name, label: star.Name })),
+    [roster]
+  );
+
   const filteredFavorites = useMemo(() => {
     let result = videos;
 
-    // Apply star filter (only on main videos tab)
-    if (starName === '' && selectedStar) {
-      result = result.filter(favorite => favorite.starName === selectedStar);
+    if (isMainVideosTab && selectedStar) {
+      result = result.filter((favorite) => favorite.starName === selectedStar);
     }
-
-    // Apply tag filter
     if (selectedTag) {
-      result = result.filter(favorite => favorite.tags?.includes(selectedTag));
+      result = result.filter((favorite) => favorite.tags?.includes(selectedTag));
     }
-
-    // Apply sorting
     if (selectedSort) {
       result = [...result].sort((a, b) => {
         const dateA = new Date(selectedSort === 'creation' ? a.creation : a.modification) || 0;
@@ -107,112 +114,47 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
     }
 
     return result;
-  }, [selectedTag, selectedSort, selectedOrder, selectedStar, starName, videos]);
+  }, [videos, isMainVideosTab, selectedStar, selectedTag, selectedSort, selectedOrder]);
 
-  const handleTagClick = useCallback((tag) => {
-    setSelectedTag(tag);
+  /* ---------------------------------------------------------------- *
+   * Mutations
+   * ---------------------------------------------------------------- */
+
+  const handleCreateTag = useCallback((tag) => {
+    setAvailableTags(tagService.addTag(tag));
   }, []);
 
-  const handleEditVideo = (favId, updatedData, videoStarName) => {
-    const updatedVideos = videos.map(fav =>
-      fav.id === favId ? { ...fav, ...updatedData } : fav
-    );
-    setVideos(updatedVideos);
+  const handleAddVideo = (video) => {
+    const { starName: pickedStar, ...fields } = video;
+    favoritesService.add(isMainVideosTab ? pickedStar : starName, fields);
+    setShowAddVideo(false);
+    reload();
+  };
 
-    // Get the current favorites from cache
-    const currentFavs = storage.getItem(storage.KEYS.FAVORITES, {});
-
-    // Get only the videos for this specific star and update the matching one
-    const starFavorites = currentFavs[videoStarName.toLowerCase()] || [];
-    currentFavs[videoStarName.toLowerCase()] = starFavorites.map(fav =>
-      fav.id === favId ? { ...fav, ...updatedData } : fav
-    );
-    storage.setItem(storage.KEYS.FAVORITES, currentFavs);
-
+  const handleUpdateVideo = (video) => {
+    favoritesService.update(editingVideo.starName, editingVideo.id, video);
     setEditingVideo(null);
-    setShowEditVidModal(false);
+    reload();
   };
 
-  const handleDeleteFavorite = (id, videoStarName) => {
-    if (window.confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
-      // Update the videos state (flattened array) for UI
-      setVideos(videos.filter(fav => fav.id !== id));
-
-      // Get the current favorites from cache and remove the matching one
-      const currentFavs = storage.getItem(storage.KEYS.FAVORITES, {});
-      const starFavorites = currentFavs[videoStarName.toLowerCase()] || [];
-      currentFavs[videoStarName.toLowerCase()] = starFavorites.filter(fav => fav.id !== id);
-      storage.setItem(storage.KEYS.FAVORITES, currentFavs);
-    }
-  };
-
-  const handleCreateNewTag = (newTag) => {
-    if (newTag.trim() && !availableTags.includes(newTag.trim())) {
-      const updatedTags = [...availableTags, newTag.trim()];
-      setAvailableTags(updatedTags);
-      storage.setItem(storage.KEYS.TAGS, updatedTags);
-    }
-  };
-
-  // Add-video-from-the-main-page flow: same shape as StarDetails' handleAddFavorite,
-  // except the target star is chosen via a dropdown instead of being implicit.
-  const handleAddVideo = () => {
-    if (!newFavorite.name || !newFavorite.imageUrl || !newFavorite.starName) {
-      alert('Please fill in name, image URL, and select a star');
+  const handleDeleteVideo = (video) => {
+    if (!window.confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
       return;
     }
-
-    const starKey = newFavorite.starName.toLowerCase();
-    const { starName: _starName, ...favoriteFields } = newFavorite;
-    const favorite = {
-      ...favoriteFields,
-      id: Date.now(),
-      tags: newFavorite.tags || [],
-      creation: nowInIST(),
-    };
-
-    const currentFavs = storage.getItem(storage.KEYS.FAVORITES, {});
-    const starFavorites = currentFavs[starKey] || [];
-    currentFavs[starKey] = [...starFavorites, favorite];
-    storage.setItem(storage.KEYS.FAVORITES, currentFavs);
-
-    setVideos(prev => [...prev, { ...favorite, starName: starKey }]);
-
-    setNewFavorite({ name: '', imageUrl: '', url: '', videoDuration: '', isVPN: false, tags: [], starName: '' });
-    setShowAddVidModal(false);
+    favoritesService.remove(video.starName, video.id);
+    reload();
   };
 
-  // All stars in the roster, including ones with zero videos (not just the
-  // ones that show up in the favorites map).
-  const starNames = useMemo(
-    () => allStars
-      .map(star => star.Name.toLowerCase())
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' })),
-    [allStars]
+  const handleTagClick = useCallback((tag) => setSelectedTag(tag), []);
+  const handleStarSelect = useCallback(
+    (name) => setSelectedStar((prev) => (prev === name ? '' : name)),
+    []
   );
 
-  const filteredStarNames = useMemo(() => {
-    if (!starSearch.trim()) return starNames;
-    return starNames.filter(name => name.toLowerCase().includes(starSearch.toLowerCase()));
-  }, [starNames, starSearch]);
+  /* ---------------------------------------------------------------- *
+   * Render
+   * ---------------------------------------------------------------- */
 
-  const handleStarSelect = useCallback((name) => {
-    setSelectedStar(prev => prev === name ? '' : name);
-  }, []);
-
-  const isMainVideosTab = starName === '';
-
-  const filterOptions = useMemo(
-    () => [{ value: '', label: 'All Categories' }, ...availableTags.map(tag => ({ value: tag, label: tag }))],
-    [availableTags]
-  );
-
-  const starSelectOptions = useMemo(
-    () => allStars.map(star => ({ value: star.Name, label: star.Name })),
-    [allStars]
-  );
-
-  // Filter/Sort/Order controls (shared between sidebar and inline)
   const renderFilterControls = () => (
     <>
       <div className="sidebar-control-group">
@@ -232,39 +174,9 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
 
       <button
         className="shuffle-button"
-        onClick={handleShuffle}
+        onClick={() => setVideos((current) => shuffle(current))}
         title="Shuffle videos"
       >🔀 Shuffle</button>
-    </>
-  );
-
-  const renderVideoContent = () => (
-    <>
-      {filteredFavorites.length === 0 ? (
-        <p className="no-data">
-          {selectedStar
-            ? `No videos found for "${selectedStar}"`
-            : selectedTag
-            ? `No videos found for category "${selectedTag}"`
-            : 'No videos found'}
-        </p>
-      ) : (
-        <div className="videos-grid">
-          {filteredFavorites.map((favorite) => (
-            <VideoCard
-              key={`${favorite.starName}-${favorite.id}`}
-              favorite={favorite}
-              selectedTag={selectedTag}
-              onTagClick={handleTagClick}
-              onEdit={() => {
-                setEditingVideo(favorite);
-                setShowEditVidModal(true);
-              }}
-              onDelete={() => handleDeleteFavorite(favorite.id, favorite.starName)}
-            />
-          ))}
-        </div>
-      )}
     </>
   );
 
@@ -277,6 +189,7 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
           aria-hidden="true"
         />
       )}
+
       <aside className="videos-left-sidebar">
         {!isMainVideosTab && starImage && (
           <div className="sidebar-star-profile">
@@ -285,7 +198,7 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
             </div>
             <h2 className="sidebar-star-name">{starName}</h2>
             <div className="sidebar-star-actions">
-              <button className="sidebar-action-btn sidebar-add-vid-btn" onClick={onAddVideo}>
+              <button className="sidebar-action-btn sidebar-add-vid-btn" onClick={() => setShowAddVideo(true)}>
                 📺 Add Video
               </button>
               <button className="sidebar-action-btn sidebar-edit-star-btn" onClick={onEditStar}>
@@ -294,17 +207,20 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
             </div>
           </div>
         )}
+
         {isMainVideosTab && (
           <div className="sidebar-add-video-section">
-            <button className="sidebar-action-btn sidebar-add-vid-btn" onClick={() => setShowAddVidModal(true)}>
+            <button className="sidebar-action-btn sidebar-add-vid-btn" onClick={() => setShowAddVideo(true)}>
               📺 Add Video
             </button>
           </div>
         )}
+
         <div className="sidebar-controls-section">
           <h3 className="sidebar-section-title">Controls</h3>
           {renderFilterControls()}
         </div>
+
         {isMainVideosTab && (
           <div className="sidebar-stars-section">
             <h3 className="sidebar-section-title">Stars ({starNames.length})</h3>
@@ -315,9 +231,10 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
                 value={starSearch}
                 onChange={(e) => setStarSearch(e.target.value)}
                 className="star-search-input"
+                aria-label="Search stars"
               />
               {starSearch && (
-                <button className="star-search-clear" onClick={() => setStarSearch('')}>×</button>
+                <button className="star-search-clear" onClick={() => setStarSearch('')} aria-label="Clear search">×</button>
               )}
             </div>
             <div
@@ -336,9 +253,7 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
                   title={name}
                 >
                   <span className="star-item-name">{name}</span>
-                  <span className="star-video-count">
-                    {videos.filter(v => v.starName === name).length}
-                  </span>
+                  <span className="star-video-count">{videoCountByStar[name] || 0}</span>
                 </div>
               ))}
             </div>
@@ -347,45 +262,65 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
       </aside>
 
       <div
-          className="videos-main-content"
-          style={
-            !isMainVideosTab
-              ? {
-                  backgroundImage: `linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url(${starImage})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                  minHeight: "100vh",
-                }
-              : {}
-          }
-        >
-        {renderVideoContent()}
+        className="videos-main-content"
+        style={
+          !isMainVideosTab
+            ? {
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url(${starImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                minHeight: '100vh',
+              }
+            : {}
+        }
+      >
+        {filteredFavorites.length === 0 ? (
+          <p className="no-data">
+            {selectedStar
+              ? `No videos found for "${selectedStar}"`
+              : selectedTag
+              ? `No videos found for category "${selectedTag}"`
+              : 'No videos found'}
+          </p>
+        ) : (
+          <div className="videos-grid">
+            {filteredFavorites.map((favorite) => (
+              <VideoCard
+                key={`${favorite.starName}-${favorite.id}`}
+                favorite={favorite}
+                selectedTag={selectedTag}
+                onTagClick={handleTagClick}
+                onEdit={() => setEditingVideo(favorite)}
+                onDelete={() => handleDeleteVideo(favorite)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {editingVideo && showEditVidModal && (
-        <EditVidDialog
-          editingVideo={editingVideo}
-          handleEditFavorite={handleEditVideo}
-          setEditingVideo={() => {
-            setEditingVideo(null);
-            setShowEditVidModal(false);
-          }}
+      {showAddVideo && (
+        <VideoDialog
+          title="Add New Video"
+          saveLabel="Save"
           tags={availableTags}
-          handleCreateNewTag={handleCreateNewTag}
+          onCreateTag={handleCreateTag}
+          onSave={handleAddVideo}
+          onCancel={() => setShowAddVideo(false)}
+          starOptions={isMainVideosTab ? starSelectOptions : null}
         />
       )}
 
-      {showAddVidModal && (
-        <AddVidDialog
-          newFavorite={newFavorite}
-          setNewFavorite={setNewFavorite}
-          handleAddFavorite={handleAddVideo}
-          setShowVidAddModal={setShowAddVidModal}
+      {editingVideo && (
+        <VideoDialog
+          key={editingVideo.id}
+          title="Edit Video"
+          saveLabel="Save Changes"
+          initialValue={editingVideo}
           tags={availableTags}
-          handleCreateNewTag={handleCreateNewTag}
-          starOptions={starSelectOptions}
-          onStarChange={(value) => setNewFavorite(prev => ({ ...prev, starName: value }))}
+          onCreateTag={handleCreateTag}
+          onSave={handleUpdateVideo}
+          onCancel={() => setEditingVideo(null)}
         />
       )}
     </div>
@@ -395,14 +330,14 @@ const VideosPage = ({ starName, starImage, onAddVideo, onEditStar, reloadKey }) 
 const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDelete }) => (
   <div className="video-card">
     <div className="card-actions">
-      <button className="action-btn edit-btn" onClick={onEdit} title="Edit video">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <button className="action-btn edit-btn" onClick={onEdit} title="Edit video" aria-label="Edit video">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
       </button>
-      <button className="action-btn delete-btn" onClick={onDelete} title="Delete video">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <button className="action-btn delete-btn" onClick={onDelete} title="Delete video" aria-label="Delete video">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <polyline points="3,6 5,6 21,6"></polyline>
           <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>
           <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -410,36 +345,31 @@ const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDel
         </svg>
       </button>
     </div>
-    {favorite.videoDuration && (
-      <div className="video-duration-tag">
-        {favorite.videoDuration}
-      </div>
-    )}
-    {favorite.isVPN && (
-      <div className="video-vpn-tag">
-        VPN
-      </div>
-    )}
+
+    {favorite.videoDuration && <div className="video-duration-tag">{favorite.videoDuration}</div>}
+    {favorite.isVPN && <div className="video-vpn-tag">VPN</div>}
+
     <div className="card-image">
       <img
         src={favorite.imageUrl}
         alt={favorite.name}
         loading="lazy"
-        onClick={() => window.open(favorite.url, '_blank')}
+        onClick={() => window.open(favorite.url, '_blank', 'noopener,noreferrer')}
       />
     </div>
+
     <div className="card-content">
       <h3 className="video-name">{favorite.name}</h3>
       <a className="star-name" href={`#/star/${encodeURIComponent(favorite.starName)}`}>
-        {favorite.starName.charAt(0).toUpperCase() + favorite.starName.slice(1)}
+        {toDisplayName(favorite.starName)}
       </a>
 
       {favorite.tags?.length > 0 && (
         <div className="video-tags-container">
           <div className="video-tags">
-            {favorite.tags.map((tag, index) => (
+            {favorite.tags.map((tag) => (
               <span
-                key={index}
+                key={tag}
                 className={`video-tag ${selectedTag === tag ? 'highlighted' : ''}`}
                 onClick={() => onTagClick(tag)}
                 title="Click to filter by this tag"
