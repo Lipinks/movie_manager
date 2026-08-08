@@ -35,6 +35,26 @@ export const addTag = (tag) => {
 };
 
 /**
+ * Delete a category.
+ *
+ * The tag is dropped from the vocabulary *and* un-assigned from every video
+ * that carried it. No video is deleted, and each video keeps all of its other
+ * tags and fields — a category is metadata, so removing it only severs the
+ * relationship.
+ *
+ * @returns the remaining, sorted tag list
+ */
+export const deleteTag = (tag) => {
+  // Un-tag first: if this throws (e.g. storage quota) the vocabulary is left
+  // intact, so the category is still visible rather than silently orphaned.
+  favoritesService.removeTagEverywhere(tag);
+
+  const next = getTags().filter((existing) => existing !== tag);
+  storage.setItem(storage.KEYS.TAGS, next);
+  return next;
+};
+
+/**
  * Give as many tags as possible a thumbnail no other tag is using.
  *
  * This is a maximum bipartite matching between tags and image URLs, solved

@@ -1,0 +1,183 @@
+/* ====================================
+   CATEGORY MANAGEMENT DIALOG
+   Shell from styles/modal.css, thumbnails and action buttons from
+   styles/cards.css — only the dialog's own sections live here.
+   ==================================== */
+
+.category-dialog {
+  max-width: 760px;
+}
+
+.category-dialog-header {
+  position: relative;
+}
+
+.category-dialog-header .modal-title {
+  padding: 0 32px;
+  overflow-wrap: anywhere;
+}
+
+.category-dialog-close {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #444;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-dialog-close:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: #000;
+}
+
+.category-dialog-section {
+  margin: 18px 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.category-dialog-empty {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* -- Video tiles -------------------------------------------------------- */
+.category-video-card {
+  cursor: default;
+}
+
+.category-video-name {
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+  text-align: center;
+  border-top: 1px solid #f1f5f9;
+  background: var(--surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Actions stay visible inside the dialog — this is a management surface,
+   so hiding them behind hover would make them hard to find. */
+.category-dialog .card-actions {
+  opacity: 1;
+  transform: none;
+}
+
+/* -- Selection tiles ---------------------------------------------------- */
+.category-pick {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.category-pick .media-card {
+  transition: all 0.2s ease;
+}
+
+.category-pick.selected .media-card {
+  border-color: var(--gold-dark);
+  box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.35);
+}
+
+.category-pick-checkbox {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--gold-dark);
+}
+
+/* -- Add button --------------------------------------------------------- */
+.category-dialog-add-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px 16px;
+  border: 1.5px dashed var(--gold-dark);
+  border-radius: 10px;
+  background: rgba(255, 215, 0, 0.08);
+  color: #7a5a0b;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-dialog-add-btn:hover {
+  background: rgba(255, 215, 0, 0.18);
+  border-style: solid;
+}
+
+/* -- Danger zone -------------------------------------------------------- */
+.category-dialog-danger {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(218, 165, 32, 0.25);
+  text-align: center;
+}
+
+.category-dialog-delete-btn {
+  padding: 10px 22px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: var(--danger);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-dialog-delete-btn:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.category-dialog-delete-btn:disabled,
+.category-dialog .action-btn:disabled,
+.modal-buttons .save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.category-dialog-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .category-dialog-section {
+    font-size: 13px;
+  }
+
+  .category-video-name {
+    font-size: 11px;
+  }
+}

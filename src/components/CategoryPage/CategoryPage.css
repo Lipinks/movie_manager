@@ -20,20 +20,23 @@
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* The card is a button so it is keyboard-reachable; these rules only undo the
-   browser's button defaults — the visual frame is .media-card. */
-.category-card {
+/* The opener is a button so it is keyboard-reachable; these rules only undo
+   the browser's button defaults — the visual frame is .media-card. */
+.category-card-open {
   display: block;
+  width: 100%;
   padding: 0;
+  border: none;
+  background: none;
   font: inherit;
   color: inherit;
   text-align: inherit;
   cursor: pointer;
 }
 
-.category-card:focus-visible {
+.category-card-open:focus-visible {
   outline: 3px solid var(--accent-indigo);
-  outline-offset: 2px;
+  outline-offset: -3px;
 }
 
 .category-card-label {

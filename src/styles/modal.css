@@ -57,16 +57,26 @@
   text-align: center;
 }
 
-/* -- Validation message ----------------------------------------------- */
-.modal-error {
+/* -- Status messages --------------------------------------------------- */
+.modal-error,
+.modal-success {
   margin: 12px 0 0;
   padding: 8px 12px;
   border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.modal-error {
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: var(--danger);
-  font-size: 13px;
-  font-weight: 500;
+}
+
+.modal-success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
 }
 
 /* -- Footer buttons ---------------------------------------------------- */

@@ -97,3 +97,68 @@ export const remove = (starName, id) => {
 export const removeStar = (starName) => {
   writeList(toStarKey(starName), []);
 };
+
+/* ------------------------------------------------------------------ *
+ * Tag membership
+ *
+ * A tag is metadata *about* a video, so these operations only ever rewrite
+ * a video's `tags` array — never its other fields, and never the video
+ * itself. They also deliberately do not stamp `modification`: re-filing a
+ * video under a category is not an edit of the video's own content, and
+ * stamping it would reshuffle the "sort by modified time" view.
+ *
+ * Each helper rewrites the whole map in a single storage write, so a bulk
+ * change across many stars cannot be left half-applied.
+ * ------------------------------------------------------------------ */
+
+const hasTag = (video, tag) => (Array.isArray(video.tags) ? video.tags : []).includes(tag);
+
+/** Rebuild every star's list through `transform`, persisting once. */
+const rewriteAllVideos = (transform) => {
+  const current = readMap();
+  const next = {};
+
+  Object.entries(current).forEach(([starKey, list]) => {
+    next[starKey] = (Array.isArray(list) ? list : []).map((video) => transform(video, starKey));
+  });
+
+  storage.setItem(storage.KEYS.FAVORITES, next);
+};
+
+/**
+ * Tag the given videos with `tag`, leaving their existing tags untouched.
+ * Videos that already carry the tag are skipped, so it cannot be duplicated.
+ *
+ * @param {{starName: string, id: number}[]} videoRefs
+ * @param {string} tag
+ */
+export const addTagToVideos = (videoRefs, tag) => {
+  const wanted = new Set(videoRefs.map((ref) => `${toStarKey(ref.starName)}::${ref.id}`));
+  if (!wanted.size) return;
+
+  rewriteAllVideos((video, starKey) => {
+    if (!wanted.has(`${starKey}::${video.id}`) || hasTag(video, tag)) return video;
+    return { ...video, tags: [...(Array.isArray(video.tags) ? video.tags : []), tag] };
+  });
+};
+
+/** Un-tag a single video. The video and its other tags are left intact. */
+export const removeTagFromVideo = (starName, id, tag) => {
+  const key = toStarKey(starName);
+
+  rewriteAllVideos((video, starKey) => {
+    if (starKey !== key || video.id !== id || !hasTag(video, tag)) return video;
+    return { ...video, tags: video.tags.filter((existing) => existing !== tag) };
+  });
+};
+
+/**
+ * Strip `tag` from every video that carries it. Used when a category is
+ * deleted — no video is removed, only the association.
+ */
+export const removeTagEverywhere = (tag) => {
+  rewriteAllVideos((video) => {
+    if (!hasTag(video, tag)) return video;
+    return { ...video, tags: video.tags.filter((existing) => existing !== tag) };
+  });
+};

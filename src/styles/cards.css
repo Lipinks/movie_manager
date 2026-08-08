@@ -61,6 +61,93 @@
   user-select: none;
 }
 
+/* -- Compact variant, for card lists inside a dialog -------------------- */
+.card-grid--compact {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.card-grid--compact .media-card-image {
+  height: 100px;
+}
+
+.card-grid--compact .media-card-fallback {
+  font-size: 28px;
+}
+
+/* -- Overlay action buttons -------------------------------------------
+   Shared by the video cards and the category cards. Hidden until the card
+   is hovered, except on touch devices where there is no hover. ---------- */
+.card-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+}
+
+.media-card:hover .card-actions,
+.media-card:focus-within .card-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.edit-btn {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+}
+
+.edit-btn:hover {
+  background: rgba(59, 130, 246, 1);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.delete-btn {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.action-btn:active {
+  transform: scale(0.95);
+}
+
+.action-btn svg {
+  pointer-events: none;
+}
+
+@media (hover: none) {
+  .card-actions {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @media (max-width: 768px) {
   .card-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -69,5 +156,13 @@
 
   .media-card-image {
     height: 150px;
+  }
+
+  .card-grid--compact {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .card-grid--compact .media-card-image {
+    height: 90px;
   }
 }
