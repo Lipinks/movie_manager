@@ -1,10 +1,14 @@
 import ReactDOM from 'react-dom/client';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
-// Global tokens and the shared modal shell load before any component styles so
-// component stylesheets can rely on the custom properties being defined.
+
+// Base layers first: tokens, then the shared shells. Importing these before
+// App means component stylesheets load after them and can override a shared
+// rule when they genuinely need to, rather than the other way round.
 import './styles/theme.css';
 import './styles/modal.css';
+import './styles/cards.css';
+
+import App from './App';
+import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<App />);

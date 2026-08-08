@@ -118,7 +118,9 @@
    image being previewed. Each overlay sets --modal-half-width to its own
    dialog's half-width, which is the only thing that used to differ between
    the four hand-written copies of this block. ---------------------------- */
-.modal-floating-preview {
+/* Scoped to the overlay so it outranks the component's own
+   .thumbnail-preview-panel width on specificity rather than on load order. */
+.modal-overlay .modal-floating-preview {
   position: fixed;
   top: 50%;
   right: calc(50% + var(--modal-half-width, 300px) + 30px);
@@ -131,7 +133,7 @@
 
 /* Below this width the preview would collide with the dialog. */
 @media (max-width: 1250px) {
-  .modal-floating-preview {
+  .modal-overlay .modal-floating-preview {
     display: none;
   }
 }

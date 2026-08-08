@@ -10,6 +10,7 @@ import Header from './components/Header/Header';
 import StarManager from './components/StarManager/StarManager';
 import StarDetails from './components/StarDetails/StarDetails';
 import VideosPage from './components/VideosPage/VideosPage';
+import CategoryPage from './components/CategoryPage/CategoryPage';
 import YoutubePage from './components/youtube/youtube';
 import Gallery from './components/gallery/gallery';
 import './App.css';
@@ -139,6 +140,7 @@ const BigAndBingApp = () => {
                 element={<StarDetails stars={stars} onStarsUpdate={handleStarsUpdate} />}
               />
               <Route path="/videos" element={<VideosPage starName="" />} />
+              <Route path="/category" element={<CategoryPage />} />
               <Route path="/youtube" element={<YoutubePage />} />
               <Route path="/gallery" element={<Gallery accessToken={accessToken} />} />
             </Routes>

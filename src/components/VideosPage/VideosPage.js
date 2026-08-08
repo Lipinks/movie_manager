@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './VideosPage.css';
 import VideoDialog from '../common/VideoDialog';
 import Dropdown from '../common/Dropdown';
@@ -42,7 +43,23 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
   // and in the add-video star picker.
   const [roster] = useState(() => starsService.getStars());
 
-  const [selectedTag, setSelectedTag] = useState('');
+  // The active category lives in the URL (?tag=…) so it is one mechanism
+  // shared by the sidebar filter, the tag chips on a card, and the links from
+  // the Category page — and so a filtered view stays shareable and
+  // back-button friendly.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedTag = searchParams.get('tag') || '';
+
+  const setSelectedTag = useCallback(
+    (tag) => {
+      const next = new URLSearchParams(searchParams);
+      if (tag) next.set('tag', tag);
+      else next.delete('tag');
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
   const [selectedSort, setSelectedSort] = useState('');
   const [selectedOrder, setSelectedOrder] = useState('new');
   const [selectedStar, setSelectedStar] = useState('');
@@ -145,7 +162,6 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
     reload();
   };
 
-  const handleTagClick = useCallback((tag) => setSelectedTag(tag), []);
   const handleStarSelect = useCallback(
     (name) => setSelectedStar((prev) => (prev === name ? '' : name)),
     []
@@ -284,13 +300,13 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
               : 'No videos found'}
           </p>
         ) : (
-          <div className="videos-grid">
+          <div className="card-grid videos-grid">
             {filteredFavorites.map((favorite) => (
               <VideoCard
                 key={`${favorite.starName}-${favorite.id}`}
                 favorite={favorite}
                 selectedTag={selectedTag}
-                onTagClick={handleTagClick}
+                onTagClick={setSelectedTag}
                 onEdit={() => setEditingVideo(favorite)}
                 onDelete={() => handleDeleteVideo(favorite)}
               />
@@ -328,7 +344,7 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
 };
 
 const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDelete }) => (
-  <div className="video-card">
+  <div className="media-card video-card">
     <div className="card-actions">
       <button className="action-btn edit-btn" onClick={onEdit} title="Edit video" aria-label="Edit video">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -349,7 +365,7 @@ const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDel
     {favorite.videoDuration && <div className="video-duration-tag">{favorite.videoDuration}</div>}
     {favorite.isVPN && <div className="video-vpn-tag">VPN</div>}
 
-    <div className="card-image">
+    <div className="media-card-image card-image">
       <img
         src={favorite.imageUrl}
         alt={favorite.name}

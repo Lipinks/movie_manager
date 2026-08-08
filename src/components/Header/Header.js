@@ -10,6 +10,7 @@ const Header = ({ onAddStar, onSignOut, onSync, onFetchData }) => {
       <div className="header-buttons">
         <button onClick={() => navigate('/')} className="header-btn home-btn">Home</button>
         <button onClick={() => navigate('/videos')} className="header-btn videos-btn">Videos</button>
+        <button onClick={() => navigate('/category')} className="header-btn category-btn">Category</button>
         <button onClick={() => navigate('/youtube')} className="header-btn insta-btn">Youtube</button>
         <button onClick={() => navigate('/gallery')} className="header-btn insta-btn">Gallery</button>
         <button onClick={onAddStar} className="header-btn add-star-btn">Add Star</button>

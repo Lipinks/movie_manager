@@ -716,24 +716,12 @@
   font-size: 0.8rem;
 }
 
+/* Frame, grid and image area come from styles/cards.css (.card-grid /
+   .media-card / .media-card-image). Only the videos-specific layering and
+   the hover-revealed overlays live here. */
 .videos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  width: 100%;
-  justify-content: center;
   position: relative;
   z-index: 1;
-}
-
-.video-card {
-  background: #ffffffff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  border: 1px solid #e2e8f0;
-  position: relative;
 }
 
 /* edit delete button style starts */
@@ -861,29 +849,6 @@
 }
 
 /* Edit Delete button style ends*/
-
-.video-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-.card-image {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-}
-
-.card-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.video-card:hover .card-image img {
-  transform: scale(1.05);
-}
 
 .card-content {
   padding: 10px;
@@ -1179,11 +1144,6 @@
   .videos-main-content,
   .videos-page.with-sidebar .videos-main-content {
     padding: 12px;
-  }
-
-  .videos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 12px;
   }
 }
 
