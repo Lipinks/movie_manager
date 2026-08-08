@@ -106,4 +106,6 @@ export const KEYS = {
   FAVORITES: 'favorites',
   TAGS: 'tags',
   YOUTUBE: 'youtube',
+  /** { [tag]: imageUrl } — manually chosen category cover images. */
+  CATEGORY_THUMBNAILS: 'categoryThumbnails',
 };

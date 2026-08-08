@@ -14,6 +14,7 @@ const FILES = {
   FAVORITES: 'favorites.json',
   TAGS: 'tags.json',
   YOUTUBE: 'youtube.json',
+  CATEGORY_THUMBNAILS: 'categoryThumbnails.json',
 };
 
 /**
@@ -78,6 +79,7 @@ export const syncToDrive = async () =>
       [FILES.FAVORITES, storage.getItem(storage.KEYS.FAVORITES, {})],
       [FILES.TAGS, storage.getItem(storage.KEYS.TAGS, [])],
       [FILES.YOUTUBE, storage.getItem(storage.KEYS.YOUTUBE, [])],
+      [FILES.CATEGORY_THUMBNAILS, storage.getItem(storage.KEYS.CATEGORY_THUMBNAILS, {})],
     ];
 
     await Promise.all(payloads.map(([name, data]) => saveFile(token, name, data, findFile(name))));
@@ -91,13 +93,15 @@ export const fetchFromDrive = async () =>
   withAuth(async (token) => {
     const files = await listFiles(token);
 
-    // Fetch all four; a failure on one must NOT wipe the others' local data.
-    const [starsResult, favoritesResult, tagsResult, youtubeResult] = await Promise.allSettled([
-      fetchFile(token, FILES.STAR, files),
-      fetchFile(token, FILES.FAVORITES, files),
-      fetchFile(token, FILES.TAGS, files),
-      fetchFile(token, FILES.YOUTUBE, files),
-    ]);
+    // Fetch all five; a failure on one must NOT wipe the others' local data.
+    const [starsResult, favoritesResult, tagsResult, youtubeResult, coversResult] =
+      await Promise.allSettled([
+        fetchFile(token, FILES.STAR, files),
+        fetchFile(token, FILES.FAVORITES, files),
+        fetchFile(token, FILES.TAGS, files),
+        fetchFile(token, FILES.YOUTUBE, files),
+        fetchFile(token, FILES.CATEGORY_THUMBNAILS, files),
+      ]);
 
     // Only overwrite a localStorage key when its fetch actually succeeded.
     // A rejected fetch (transient network/HTTP error) leaves existing data intact.
@@ -109,6 +113,12 @@ export const fetchFromDrive = async () =>
     }
     if (youtubeResult.status === 'fulfilled') {
       storage.setItem(storage.KEYS.YOUTUBE, youtubeResult.value || []);
+    }
+    // This file is newer than the others, so a Drive account that predates it
+    // simply has no copy. `null` there means "absent", not "empty" — writing
+    // {} would wipe covers chosen before the first sync.
+    if (coversResult.status === 'fulfilled' && coversResult.value) {
+      storage.setItem(storage.KEYS.CATEGORY_THUMBNAILS, coversResult.value);
     }
 
     if (starsResult.status === 'rejected') {
