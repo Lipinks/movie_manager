@@ -61,14 +61,16 @@
   user-select: none;
 }
 
-/* -- Compact variant, for card lists inside a dialog -------------------- */
+/* -- Compact variant, for card lists inside a dialog --------------------
+   Fixed 7 across on desktop. minmax(0, 1fr) rather than plain 1fr so a long
+   video name cannot push a column past its share and overflow the dialog. */
 .card-grid--compact {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .card-grid--compact .media-card-image {
-  height: 100px;
+  height: 84px;
 }
 
 .card-grid--compact .media-card-fallback {
@@ -96,6 +98,9 @@
   transform: translateY(0);
 }
 
+/* No backdrop-filter here on purpose: with two of these per card, a large
+   grid ended up with thousands of blurred compositing layers. The solid
+   backgrounds below read the same without the paint cost. */
 .action-btn {
   display: flex;
   align-items: center;
@@ -106,13 +111,11 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .edit-btn {
-  background: rgba(59, 130, 246, 0.9);
+  background: rgb(59, 130, 246);
   color: white;
 }
 
@@ -123,7 +126,7 @@
 }
 
 .delete-btn {
-  background: rgba(239, 68, 68, 0.9);
+  background: rgb(239, 68, 68);
   color: white;
 }
 
@@ -158,11 +161,26 @@
     height: 150px;
   }
 
-  .card-grid--compact {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  }
-
   .card-grid--compact .media-card-image {
-    height: 90px;
+    height: 70px;
+  }
+}
+
+/* Step the dialog grid down rather than letting 7 columns get unusably thin. */
+@media (max-width: 1100px) {
+  .card-grid--compact {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .card-grid--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
+  .card-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

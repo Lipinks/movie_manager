@@ -20,6 +20,10 @@ const orderOptions = [
 
 const byName = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
 
+// Hidden for now. Flip to true to bring the sidebar star search back — the
+// filtering logic below stays wired up so nothing else has to change.
+const SHOW_STAR_SEARCH = false;
+
 const shuffle = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -50,14 +54,22 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTag = searchParams.get('tag') || '';
 
+  // Uses the functional form so this callback does not depend on `searchParams`.
+  // Depending on it would give the callback a new identity on every URL change,
+  // which defeats React.memo on every card in the grid.
   const setSelectedTag = useCallback(
     (tag) => {
-      const next = new URLSearchParams(searchParams);
-      if (tag) next.set('tag', tag);
-      else next.delete('tag');
-      setSearchParams(next, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (tag) next.set('tag', tag);
+          else next.delete('tag');
+          return next;
+        },
+        { replace: true }
+      );
     },
-    [searchParams, setSearchParams]
+    [setSearchParams]
   );
 
   const [selectedSort, setSelectedSort] = useState('');
@@ -99,7 +111,7 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
   }, [roster, videos]);
 
   const filteredStarNames = useMemo(() => {
-    const query = starSearch.trim().toLowerCase();
+    const query = SHOW_STAR_SEARCH ? starSearch.trim().toLowerCase() : '';
     return query ? starNames.filter((name) => name.includes(query)) : starNames;
   }, [starNames, starSearch]);
 
@@ -154,13 +166,20 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
     reload();
   };
 
-  const handleDeleteVideo = (video) => {
-    if (!window.confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
-      return;
-    }
-    favoritesService.remove(video.starName, video.id);
-    reload();
-  };
+  // Stable identities matter here: VideoCard is memoized, and a fresh arrow
+  // per card per render made every card re-render on any state change at all.
+  const handleDeleteVideo = useCallback(
+    (video) => {
+      if (!window.confirm('Are you sure you want to delete this video? This action cannot be undone.')) {
+        return;
+      }
+      favoritesService.remove(video.starName, video.id);
+      reload();
+    },
+    [reload]
+  );
+
+  const handleEditVideo = useCallback((video) => setEditingVideo(video), []);
 
   const handleStarSelect = useCallback(
     (name) => setSelectedStar((prev) => (prev === name ? '' : name)),
@@ -198,14 +217,6 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
 
   return (
     <div className={`videos-page with-sidebar ${isMainVideosTab ? 'with-header-padding' : ''}`}>
-      {!isMainVideosTab && starImage && (
-        <div
-          className="videos-bg"
-          style={{ backgroundImage: `url("${starImage}")` }}
-          aria-hidden="true"
-        />
-      )}
-
       <aside className="videos-left-sidebar">
         {!isMainVideosTab && starImage && (
           <div className="sidebar-star-profile">
@@ -240,19 +251,21 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
         {isMainVideosTab && (
           <div className="sidebar-stars-section">
             <h3 className="sidebar-section-title">Stars ({starNames.length})</h3>
-            <div className="sidebar-star-search">
-              <input
-                type="text"
-                placeholder="Search stars..."
-                value={starSearch}
-                onChange={(e) => setStarSearch(e.target.value)}
-                className="star-search-input"
-                aria-label="Search stars"
-              />
-              {starSearch && (
-                <button className="star-search-clear" onClick={() => setStarSearch('')} aria-label="Clear search">×</button>
-              )}
-            </div>
+            {SHOW_STAR_SEARCH && (
+              <div className="sidebar-star-search">
+                <input
+                  type="text"
+                  placeholder="Search stars..."
+                  value={starSearch}
+                  onChange={(e) => setStarSearch(e.target.value)}
+                  className="star-search-input"
+                  aria-label="Search stars"
+                />
+                {starSearch && (
+                  <button className="star-search-clear" onClick={() => setStarSearch('')} aria-label="Clear search">×</button>
+                )}
+              </div>
+            )}
             <div
               className={`sidebar-star-item all-stars ${selectedStar === '' ? 'active' : ''}`}
               onClick={() => setSelectedStar('')}
@@ -307,8 +320,8 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
                 favorite={favorite}
                 selectedTag={selectedTag}
                 onTagClick={setSelectedTag}
-                onEdit={() => setEditingVideo(favorite)}
-                onDelete={() => handleDeleteVideo(favorite)}
+                onEdit={handleEditVideo}
+                onDelete={handleDeleteVideo}
               />
             ))}
           </div>
@@ -346,13 +359,13 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
 const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDelete }) => (
   <div className="media-card video-card">
     <div className="card-actions">
-      <button className="action-btn edit-btn" onClick={onEdit} title="Edit video" aria-label="Edit video">
+      <button className="action-btn edit-btn" onClick={() => onEdit(favorite)} title="Edit video" aria-label="Edit video">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
         </svg>
       </button>
-      <button className="action-btn delete-btn" onClick={onDelete} title="Delete video" aria-label="Delete video">
+      <button className="action-btn delete-btn" onClick={() => onDelete(favorite)} title="Delete video" aria-label="Delete video">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
           <polyline points="3,6 5,6 21,6"></polyline>
           <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"></path>

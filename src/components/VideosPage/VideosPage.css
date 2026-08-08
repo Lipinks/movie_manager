@@ -737,7 +737,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(82, 82, 82, 0.85);
+  background: rgb(74, 74, 74);
   color: white;
   font-size: 15px;
   font-weight: 600;
@@ -746,8 +746,6 @@
   opacity: 0;
   transform: translateY(-10px);
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.5px;
 }
@@ -767,7 +765,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(220, 38, 38, 0.9);
+  background: rgb(220, 38, 38);
   color: white;
   font-size: 12px;
   font-weight: 700;
@@ -776,8 +774,6 @@
   opacity: 0;
   transform: translateY(-10px);
   transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -803,7 +799,6 @@
   visibility: hidden;
   transform: translateY(10px);
   transition: all 0.3s ease;
-  backdrop-filter: blur(1px);
 }
 
 .video-card:hover .card-content {
@@ -858,13 +853,13 @@
    VIDEO TAGS CONTAINER - TRANSPARENT GLASS
    ==================================== */
 
+/* No backdrop-filter: this sits on the card's dark gradient overlay where the
+   blur was barely visible, but it cost one compositing layer per card. */
 .video-tags-container {
   position: relative;
   width: 100%;
   overflow: hidden;
   border-radius: 10px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s ease;
   padding: 0;
   margin: 12px 0;
@@ -964,12 +959,16 @@
 }
 
 /* Tag Active/Selected State */
+/* Deliberately not animated: filtering by a category adds .highlighted to a
+   chip on every matching card, and animating box-shadow forces a repaint per
+   frame per chip (it is not compositor-accelerated). The gradient, ring, bold
+   weight and ✓ already make the active tag obvious. */
 .video-tag.highlighted {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5),
+              inset 0 0 0 2px rgba(255, 255, 255, 0.6);
   font-weight: 700;
-  animation: tagGlow 2s ease-in-out infinite;
 }
 
 .video-tag.highlighted::after {
@@ -977,16 +976,6 @@
   margin-left: 6px;
   font-weight: bold;
   opacity: 0.95;
-}
-
-/* Tag Active Glow */
-@keyframes tagGlow {
-  0%, 100% {
-    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5);
-  }
-  50% {
-    box-shadow: 0 6px 24px rgba(102, 126, 234, 0.7);
-  }
 }
 
 /* Tag Click/Active State */

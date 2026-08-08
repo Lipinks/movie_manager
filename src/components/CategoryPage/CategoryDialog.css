@@ -4,8 +4,9 @@
    styles/cards.css — only the dialog's own sections live here.
    ==================================== */
 
+/* Wide enough for 7 thumbnails per row (see .card-grid--compact). */
 .category-dialog {
-  max-width: 760px;
+  max-width: 1060px;
 }
 
 .category-dialog-header {
