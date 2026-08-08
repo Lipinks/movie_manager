@@ -173,6 +173,47 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
 
         {mode === 'manage' ? (
           <>
+            {/* Actions sit above the grid so they stay reachable without
+                scrolling past a long list of videos. */}
+            <div className="category-dialog-actions">
+              <button
+                type="button"
+                className="category-dialog-add-btn"
+                onClick={() => {
+                  setStatus(null);
+                  setMode('add');
+                }}
+              >
+                + Add Videos into this Category
+              </button>
+              {/* No `title` here: it would override the button's accessible
+                  name. The confirm dialog already states that no video is
+                  deleted, which is the moment that reassurance matters. */}
+              <button
+                type="button"
+                className="category-dialog-delete-btn"
+                onClick={handleDeleteCategory}
+                disabled={busy}
+              >
+                Delete Category
+              </button>
+            </div>
+
+            {assigned.length > 0 && (
+              <p className="category-cover-hint">
+                {pinnedVideo ? (
+                  <>
+                    {`Card image pinned to "${pinnedVideo.name}". `}
+                    <button type="button" className="category-cover-reset" onClick={handleClearCover} disabled={busy}>
+                      Use automatic cover
+                    </button>
+                  </>
+                ) : (
+                  'The card image is chosen automatically — pick ★ on a video to pin it.'
+                )}
+              </p>
+            )}
+
             <h3 className="category-dialog-section">Videos in this category ({assigned.length})</h3>
 
             {assigned.length === 0 ? (
@@ -232,45 +273,6 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
               </div>
             )}
 
-            {assigned.length > 0 && (
-              <p className="category-cover-hint">
-                {pinnedVideo ? (
-                  <>
-                    {`Card image pinned to "${pinnedVideo.name}". `}
-                    <button type="button" className="category-cover-reset" onClick={handleClearCover} disabled={busy}>
-                      Use automatic cover
-                    </button>
-                  </>
-                ) : (
-                  'The card image is chosen automatically — pick ★ on a video to pin it.'
-                )}
-              </p>
-            )}
-
-            <button
-              type="button"
-              className="category-dialog-add-btn"
-              onClick={() => {
-                setStatus(null);
-                setMode('add');
-              }}
-            >
-              + Add Videos into this Category
-            </button>
-
-            <div className="category-dialog-danger">
-              <button
-                type="button"
-                className="category-dialog-delete-btn"
-                onClick={handleDeleteCategory}
-                disabled={busy}
-              >
-                Delete Category
-              </button>
-              <p className="category-dialog-hint">
-                Removes this category from every video. No video is deleted.
-              </p>
-            </div>
           </>
         ) : (
           <>
