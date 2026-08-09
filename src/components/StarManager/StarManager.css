@@ -2,6 +2,78 @@
   padding-top: 55px; /* Add top padding to account for fixed header */
 }
 
+/* ── Floating shuffle/sort controls ──
+   Deliberately NOT part of Header.js: these are Home-page-only controls, and
+   the header's own layout already leaves a right-hand gap (its `padding-right:
+   200px`, unused by any header button) that they sit inside — so visually
+   they read as part of the header bar without being one of its nav buttons.
+   position: fixed + a z-index above the header's (1000) is what makes them
+   float on top of it rather than behind. */
+.star-shuffle-controls {
+  position: fixed;
+  top: 8px;
+  right: 16px;
+  z-index: 1001;
+  display: flex;
+  gap: 8px;
+}
+
+.star-shuffle-btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  background: linear-gradient(to bottom, var(--gold-dark, #B8860B), #8B6914);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.star-shuffle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(to bottom, var(--gold-accent, #DAA520), var(--gold-dark, #B8860B));
+}
+
+.star-shuffle-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Below this width the header switches to a taller, centered column layout
+   (~185px) and its reserved right-hand gap disappears — floating on top of it
+   would sit on empty space above the logo, not read as "on the header" at
+   all. Float just under it instead. */
+@media (max-width: 1024px) {
+  .star-shuffle-controls {
+    top: 192px;
+    right: 12px;
+  }
+}
+
+/* Below this width the header goes back to a single compact row, but its nav
+   buttons now scroll horizontally edge-to-edge with no dead space — scrolled
+   to the end, a nav button (e.g. Sign Out) would sit directly under a
+   top-right overlay. Keep floating, but move it below the header instead of
+   on top of the nav row so it can never block a button the user is using. */
+@media (max-width: 768px) {
+  .star-shuffle-controls {
+    top: 58px;
+    right: 6px;
+  }
+
+  .star-shuffle-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+}
+
 .stars-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

@@ -7,6 +7,7 @@ import * as favoritesService from '../../services/favoritesService';
 import * as starsService from '../../services/starsService';
 import * as tagService from '../../services/tagService';
 import { toStarKey, toDisplayName } from '../../utils/starName';
+import { shuffle } from '../../utils/arrayUtils';
 
 const sortOptions = [
   { value: 'creation', label: 'Creation Time' },
@@ -27,15 +28,6 @@ const SHOW_STAR_SEARCH = false;
 // The Data Base value is user-entered, so only render it as a link when it is
 // actually an http(s) URL — this keeps a pasted `javascript:` value inert.
 const isSafeHttpUrl = (value) => /^https?:\/\//i.test(String(value ?? '').trim());
-
-const shuffle = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
 
 /**
  * Video browser, used both as the standalone /videos page (starName === '')
