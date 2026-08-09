@@ -24,6 +24,10 @@ const byName = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
 // filtering logic below stays wired up so nothing else has to change.
 const SHOW_STAR_SEARCH = false;
 
+// The Data Base value is user-entered, so only render it as a link when it is
+// actually an http(s) URL — this keeps a pasted `javascript:` value inert.
+const isSafeHttpUrl = (value) => /^https?:\/\//i.test(String(value ?? '').trim());
+
 const shuffle = (array) => {
   const shuffled = [...array];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -38,7 +42,7 @@ const shuffle = (array) => {
  * and embedded in a star's page (starName set). All reads and writes go
  * through favoritesService so the storage shape lives in exactly one place.
  */
-const VideosPage = ({ starName = '', starImage, onEditStar }) => {
+const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
   const isMainVideosTab = starName === '';
 
   const [videos, setVideos] = useState([]);
@@ -225,6 +229,17 @@ const VideosPage = ({ starName = '', starImage, onEditStar }) => {
             </div>
             <h2 className="sidebar-star-name">{starName}</h2>
             <div className="sidebar-star-actions">
+              {isSafeHttpUrl(starDataBase) && (
+                <a
+                  className="sidebar-action-btn sidebar-db-btn"
+                  href={starDataBase.trim()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={starDataBase.trim()}
+                >
+                  🗃️ Data Base
+                </a>
+              )}
               <button className="sidebar-action-btn sidebar-add-vid-btn" onClick={() => setShowAddVideo(true)}>
                 📺 Add Video
               </button>

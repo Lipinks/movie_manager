@@ -42,6 +42,7 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
       <VideosPage
         starName={star.Name}
         starImage={star.Image_Link}
+        starDataBase={star.Data_Base}
         onEditStar={() => setShowEditStar(true)}
       />
     </div>

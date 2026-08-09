@@ -80,8 +80,11 @@
   word-break: break-word;
 }
 
+/* Wraps so the full-width Data Base link sits on its own row above the
+   Add Video / Edit Star pair, which keep sharing the row below it. */
 .sidebar-star-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   width: 100%;
   margin-top: 12px;
@@ -119,6 +122,26 @@
 .sidebar-edit-star-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Full width on its own row. It is an <a>, so it needs the flex centring
+   that the sibling <button>s get for free. */
+.sidebar-db-btn {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.3);
+}
+
+.sidebar-db-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.4);
+  color: white;
 }
 
 /* Sidebar Add Video Section (main videos tab) */

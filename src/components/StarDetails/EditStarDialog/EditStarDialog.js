@@ -13,23 +13,32 @@ import './EditStarDialog.css';
  * @param {Function} onCancel
  */
 const EditStarDialog = ({ star, onSave, onCancel }) => {
-  const [imageLink, setImageLink] = useState(star.Image_Link || '');
+  const [form, setForm] = useState({
+    Image_Link: star.Image_Link || '',
+    Data_Base: star.Data_Base || '',
+  });
   const [error, setError] = useState('');
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleSave = () => {
-    const trimmed = imageLink.trim();
-    if (!trimmed) {
+    const imageLink = form.Image_Link.trim();
+    if (!imageLink) {
       setError('A thumbnail URL is required.');
       return;
     }
 
     setError('');
-    onSave({ ...star, Image_Link: trimmed });
+    // Data Base is optional; everything else on the star is carried through.
+    onSave({ ...star, Image_Link: imageLink, Data_Base: form.Data_Base.trim() });
   };
 
   return (
     <div className="modal-overlay edit-star-overlay">
-      <ThumbnailPreview imageUrl={imageLink} className="modal-floating-preview" />
+      <ThumbnailPreview imageUrl={form.Image_Link} className="modal-floating-preview" />
 
       <div className="modal-dialog edit-star-dialog">
         <div className="edit-star-header">
@@ -62,14 +71,34 @@ const EditStarDialog = ({ star, onSave, onCancel }) => {
                 type="url"
                 name="Image_Link"
                 placeholder="Image URL"
-                value={imageLink}
-                onChange={(e) => setImageLink(e.target.value)}
+                value={form.Image_Link}
+                onChange={handleInputChange}
               />
               <div className="input-icon">
                 <i className="fas fa-link"></i>
               </div>
             </div>
             <div className="input-hint">Enter a valid image URL (JPG, PNG, GIF)</div>
+          </div>
+
+          <div className="input-group">
+            <div className="input-label">
+              <i className="fas fa-database"></i>
+              <span>Data Base</span>
+            </div>
+            <div className="input-wrapper">
+              <input
+                type="url"
+                name="Data_Base"
+                placeholder="https://example.com/profile"
+                value={form.Data_Base}
+                onChange={handleInputChange}
+              />
+              <div className="input-icon">
+                <i className="fas fa-database"></i>
+              </div>
+            </div>
+            <div className="input-hint">Optional — leave blank to hide the Data Base button</div>
           </div>
 
           {error && <p className="modal-error" role="alert">{error}</p>}

@@ -6,12 +6,12 @@ import './AddStarDialog.css';
  * Create-a-star dialog. Owns its own draft so StarManager does not have to
  * carry throwaway form state, mirroring how VideoDialog works.
  *
- * @param {Function} onSave     receives { Name, Image_Link, Tags }
+ * @param {Function} onSave     receives { Name, Image_Link, Data_Base, Tags }
  * @param {Function} onCancel
  * @param {(name: string) => boolean} isDuplicateName
  */
 const AddStarDialog = ({ onSave, onCancel, isDuplicateName }) => {
-  const [star, setStar] = useState({ Name: '', Image_Link: '', Tags: [] });
+  const [star, setStar] = useState({ Name: '', Image_Link: '', Data_Base: '', Tags: [] });
   const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
@@ -33,7 +33,8 @@ const AddStarDialog = ({ onSave, onCancel, isDuplicateName }) => {
     }
 
     setError('');
-    onSave({ ...star, Name: name, Image_Link: imageLink });
+    // Data Base is optional — an empty value simply means the star has no link.
+    onSave({ ...star, Name: name, Image_Link: imageLink, Data_Base: star.Data_Base.trim() });
   };
 
   return (
@@ -56,6 +57,13 @@ const AddStarDialog = ({ onSave, onCancel, isDuplicateName }) => {
             name="Image_Link"
             placeholder="Image Link"
             value={star.Image_Link}
+            onChange={handleInputChange}
+          />
+          <input
+            type="url"
+            name="Data_Base"
+            placeholder="Data Base link (optional)"
+            value={star.Data_Base}
             onChange={handleInputChange}
           />
         </div>
