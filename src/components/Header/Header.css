@@ -141,6 +141,10 @@
     content: "🗂️";
 }
 
+.updates-btn::after {
+    content: "🔔";
+}
+
 .fetch-btn::after {
     content: "⬇️";
 }

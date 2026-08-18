@@ -8,6 +8,9 @@ import * as starsService from '../../services/starsService';
 import * as tagService from '../../services/tagService';
 import { toStarKey, toDisplayName } from '../../utils/starName';
 import { shuffle } from '../../utils/arrayUtils';
+// The Data Base value is user-entered, so it is only rendered as a link once
+// confirmed to be http(s) — this keeps a pasted `javascript:` value inert.
+import { isHttpUrl } from '../../utils/url';
 
 const sortOptions = [
   { value: 'creation', label: 'Creation Time' },
@@ -25,9 +28,6 @@ const byName = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
 // filtering logic below stays wired up so nothing else has to change.
 const SHOW_STAR_SEARCH = false;
 
-// The Data Base value is user-entered, so only render it as a link when it is
-// actually an http(s) URL — this keeps a pasted `javascript:` value inert.
-const isSafeHttpUrl = (value) => /^https?:\/\//i.test(String(value ?? '').trim());
 
 /**
  * Video browser, used both as the standalone /videos page (starName === '')
@@ -221,7 +221,7 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
             </div>
             <h2 className="sidebar-star-name">{starName}</h2>
             <div className="sidebar-star-actions">
-              {isSafeHttpUrl(starDataBase) && (
+              {isHttpUrl(starDataBase) && (
                 <a
                   className="sidebar-action-btn sidebar-db-btn"
                   href={starDataBase.trim()}

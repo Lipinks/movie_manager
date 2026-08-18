@@ -108,4 +108,6 @@ export const KEYS = {
   YOUTUBE: 'youtube',
   /** { [tag]: imageUrl } — manually chosen category cover images. */
   CATEGORY_THUMBNAILS: 'categoryThumbnails',
+  /** Saved websites shown on the Updates page. */
+  UPDATES: 'updates',
 };

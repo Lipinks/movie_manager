@@ -15,6 +15,7 @@ const FILES = {
   TAGS: 'tags.json',
   YOUTUBE: 'youtube.json',
   CATEGORY_THUMBNAILS: 'categoryThumbnails.json',
+  UPDATES: 'updates.json',
 };
 
 /**
@@ -80,6 +81,7 @@ export const syncToDrive = async () =>
       [FILES.TAGS, storage.getItem(storage.KEYS.TAGS, [])],
       [FILES.YOUTUBE, storage.getItem(storage.KEYS.YOUTUBE, [])],
       [FILES.CATEGORY_THUMBNAILS, storage.getItem(storage.KEYS.CATEGORY_THUMBNAILS, {})],
+      [FILES.UPDATES, storage.getItem(storage.KEYS.UPDATES, [])],
     ];
 
     await Promise.all(payloads.map(([name, data]) => saveFile(token, name, data, findFile(name))));
@@ -93,14 +95,15 @@ export const fetchFromDrive = async () =>
   withAuth(async (token) => {
     const files = await listFiles(token);
 
-    // Fetch all five; a failure on one must NOT wipe the others' local data.
-    const [starsResult, favoritesResult, tagsResult, youtubeResult, coversResult] =
+    // Fetch all six; a failure on one must NOT wipe the others' local data.
+    const [starsResult, favoritesResult, tagsResult, youtubeResult, coversResult, updatesResult] =
       await Promise.allSettled([
         fetchFile(token, FILES.STAR, files),
         fetchFile(token, FILES.FAVORITES, files),
         fetchFile(token, FILES.TAGS, files),
         fetchFile(token, FILES.YOUTUBE, files),
         fetchFile(token, FILES.CATEGORY_THUMBNAILS, files),
+        fetchFile(token, FILES.UPDATES, files),
       ]);
 
     // Only overwrite a localStorage key when its fetch actually succeeded.
@@ -114,11 +117,15 @@ export const fetchFromDrive = async () =>
     if (youtubeResult.status === 'fulfilled') {
       storage.setItem(storage.KEYS.YOUTUBE, youtubeResult.value || []);
     }
-    // This file is newer than the others, so a Drive account that predates it
-    // simply has no copy. `null` there means "absent", not "empty" — writing
-    // {} would wipe covers chosen before the first sync.
+    // These two files are newer than the others, so a Drive account that
+    // predates them simply has no copy. `null` there means "absent", not
+    // "empty" — writing a blank value would wipe data saved before the first
+    // sync that included them.
     if (coversResult.status === 'fulfilled' && coversResult.value) {
       storage.setItem(storage.KEYS.CATEGORY_THUMBNAILS, coversResult.value);
+    }
+    if (updatesResult.status === 'fulfilled' && updatesResult.value) {
+      storage.setItem(storage.KEYS.UPDATES, updatesResult.value);
     }
 
     if (starsResult.status === 'rejected') {

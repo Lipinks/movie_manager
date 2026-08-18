@@ -1,0 +1,307 @@
+/* ====================================
+   UPDATES PAGE
+   Card frame comes from styles/cards.css (.media-card) and the status
+   messages from styles/modal.css, so only this page's own layout lives here.
+   ==================================== */
+
+.updates-page {
+  /* 50px clears the fixed header, matching the other pages. */
+  padding: 50px 20px 24px;
+  min-height: 100vh;
+}
+
+.updates-page-title {
+  margin: 20px 0 24px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 700;
+  color: #2d3748;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* -- Add form ----------------------------------------------------------- */
+.updates-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid rgba(218, 165, 32, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.updates-input {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1.5px solid #e8e0c5;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  background: var(--surface);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.updates-input:focus {
+  outline: none;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+}
+
+.updates-input::placeholder {
+  color: #a0a0a0;
+  font-size: 13px;
+}
+
+.updates-vpn-toggle {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.updates-vpn-toggle:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.updates-vpn-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #ef4444;
+}
+
+.updates-vpn-toggle:has(input:checked) {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.updates-add-btn {
+  flex: 0 0 auto;
+  height: 40px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(218, 165, 32, 0.3);
+  transition: all 0.2s ease;
+}
+
+.updates-add-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* -- Open-all controls --------------------------------------------------- */
+.updates-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 1000px;
+  margin: 16px auto 0;
+}
+
+.updates-open-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent-indigo) 0%, var(--accent-purple) 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
+}
+
+.updates-open-btn.secondary {
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.3);
+}
+
+.updates-open-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.updates-open-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.updates-count {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.updates-page .modal-error,
+.updates-page .modal-success {
+  max-width: 1000px;
+  margin: 12px auto 0;
+}
+
+/* -- Saved sites: two columns -------------------------------------------- */
+.updates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 1000px;
+  margin: 20px auto 0;
+}
+
+.update-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.update-card-icon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  overflow: hidden;
+}
+
+.update-card-icon img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.update-card-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.update-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.update-card-name {
+  max-width: 100%;
+  color: var(--accent-indigo);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.update-card-name:hover {
+  color: var(--accent-purple);
+  text-decoration: underline;
+}
+
+.update-vpn-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.update-vpn-badge.required {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--danger);
+}
+
+.update-vpn-badge.not-required {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.update-card-remove {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.update-card-remove:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* -- Responsive ---------------------------------------------------------- */
+@media (max-width: 700px) {
+  .updates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .updates-page {
+    padding: 50px 12px 16px;
+  }
+
+  .updates-page-title {
+    font-size: 24px;
+    margin: 14px 0 16px;
+  }
+
+  .updates-form {
+    padding: 12px;
+  }
+
+  .updates-input,
+  .updates-vpn-toggle,
+  .updates-add-btn {
+    flex: 1 1 100%;
+  }
+
+  .updates-open-btn {
+    flex: 1 1 100%;
+  }
+
+  .updates-count {
+    margin-left: 0;
+  }
+}
