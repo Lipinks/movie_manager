@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import * as authService from './services/authService';
-import * as driveSyncService from './services/driveSyncService';
+import * as autoSyncService from './services/autoSyncService';
 import * as starsService from './services/starsService';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import LoginPage from './components/LoginPage/LoginPage';
@@ -56,6 +56,23 @@ const App = () => {
   // screen instead of leaving a dead app on screen.
   useEffect(() => authService.subscribe(setAccessToken), []);
 
+  // Sync with Drive automatically while signed in. Keyed on signed-in-ness,
+  // not the token itself, so an hourly token renewal doesn't restart it.
+  const isSignedIn = Boolean(accessToken);
+  useEffect(() => {
+    if (!isSignedIn) return undefined;
+
+    autoSyncService.start();
+    // Star pages render from this state, so mirror roster changes from Drive.
+    const unsubscribe = autoSyncService.onRemoteChange(({ stars: remoteStars }) => {
+      if (remoteStars) setStars(remoteStars);
+    });
+    return () => {
+      unsubscribe();
+      autoSyncService.stop();
+    };
+  }, [isSignedIn]);
+
   const handleSignIn = useCallback(async () => {
     try {
       await authService.signIn();
@@ -67,7 +84,19 @@ const App = () => {
     }
   }, []);
 
-  const handleSignOut = useCallback(() => {
+  const handleSignOut = useCallback(async () => {
+    // Upload anything still waiting first, so signing out never strands edits.
+    if (autoSyncService.hasPendingChanges()) {
+      try {
+        await autoSyncService.syncNow();
+      } catch {
+        const signOutAnyway = window.confirm(
+          "Some changes couldn't be uploaded to Drive yet. Sign out anyway? " +
+            "They stay in this browser and upload the next time you sign in here."
+        );
+        if (!signOutAnyway) return;
+      }
+    }
     authService.signOut();
   }, []);
 
@@ -79,8 +108,8 @@ const App = () => {
   const handleFetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const fetchedStars = await driveSyncService.fetchFromDrive();
-      setStars(starsService.saveStars(fetchedStars));
+      const fetchedStars = await autoSyncService.fetchNow();
+      if (fetchedStars) setStars(fetchedStars);
     } catch (error) {
       console.error('Error fetching data from Drive:', error);
       alert(describeError(error, 'Failed to fetch data from Drive'));
@@ -97,7 +126,7 @@ const App = () => {
 
     setIsLoading(true);
     try {
-      await driveSyncService.syncToDrive();
+      await autoSyncService.syncNow();
     } catch (error) {
       console.error('Error syncing to Drive:', error);
       alert(describeError(error, 'Failed to sync with Drive'));

@@ -17,6 +17,31 @@ const cache = new Map();
 /** Marks "this key is genuinely absent" so misses are cached too. */
 const MISS = Symbol('storage-miss');
 
+/* ------------------------------------------------------------------ *
+ * Change notifications
+ *
+ * Auto-sync listens here to notice local edits, so no service has to
+ * report its own writes. Writes that merely store a copy downloaded from
+ * Drive pass `{ fromRemote: true }`, which tells auto-sync not to upload
+ * them straight back.
+ * ------------------------------------------------------------------ */
+
+const listeners = new Set();
+
+/**
+ * @param {(key: string, info: {fromRemote: boolean}) => void} listener
+ *        called after every successful setItem() / removeItem()
+ * @returns {() => void} unsubscribe
+ */
+export const subscribe = (listener) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+
+const emit = (key, fromRemote) => {
+  listeners.forEach((listener) => listener(key, { fromRemote }));
+};
+
 /**
  * Read a JSON value from localStorage (cached, including negative lookups).
  * @param {string} key           localStorage key
@@ -52,8 +77,10 @@ export const getItem = (key, defaultValue = null) => {
  * disagrees with what is actually persisted, and the error is rethrown.
  * @param {string} key
  * @param {*}      value  will be JSON-stringified
+ * @param {{fromRemote?: boolean}} [options]  fromRemote marks a copy
+ *        downloaded from Drive rather than a local edit
  */
-export const setItem = (key, value) => {
+export const setItem = (key, value, { fromRemote = false } = {}) => {
   const hadPrevious = cache.has(key);
   const previous = cache.get(key);
 
@@ -66,6 +93,7 @@ export const setItem = (key, value) => {
     console.error(`[storage] Failed to persist "${key}":`, error);
     throw error;
   }
+  emit(key, fromRemote);
 };
 
 /**
@@ -88,6 +116,7 @@ export const setRaw = (key, value) => {
 export const removeItem = (key) => {
   cache.delete(key);
   localStorage.removeItem(key);
+  emit(key, false);
 };
 
 /**
@@ -110,4 +139,8 @@ export const KEYS = {
   CATEGORY_THUMBNAILS: 'categoryThumbnails',
   /** Saved websites shown on the Updates page. */
   UPDATES: 'updates',
+  /** Raw '1' while local edits are waiting to be uploaded to Drive. */
+  SYNC_PENDING: 'syncPending',
+  /** { [fileName]: modifiedTime } of each Drive file as last downloaded or uploaded here. */
+  DRIVE_VERSIONS: 'driveFileVersions',
 };

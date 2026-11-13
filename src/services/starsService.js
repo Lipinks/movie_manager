@@ -18,10 +18,14 @@ export const getStars = () => {
   return Array.isArray(stored) ? sortByName(stored) : [];
 };
 
-/** Persist the roster (sorted) and hand back exactly what was written. */
-export const saveStars = (stars) => {
+/**
+ * Persist the roster (sorted) and hand back exactly what was written.
+ * @param {object[]} stars
+ * @param {{fromRemote?: boolean}} [options]  passed through to storage.setItem
+ */
+export const saveStars = (stars, options) => {
   const sorted = sortByName(Array.isArray(stars) ? stars : []);
-  storage.setItem(storage.KEYS.STARS, sorted);
+  storage.setItem(storage.KEYS.STARS, sorted, options);
   return sorted;
 };
 

@@ -25,8 +25,24 @@ Live site: <https://lipinks.github.io/movie_manager>
 
 ## How data is stored
 
-Everything except the Gallery is kept in localStorage. Two header buttons move
-it to and from Google Drive:
+Everything except the Gallery is kept in localStorage and synced to Google
+Drive automatically while you're signed in:
+
+- Edits upload a few seconds after you make them, or at once when you switch
+  away from the tab. Edits that haven't uploaded yet are remembered and upload
+  the next time the app opens.
+- Drive is checked when the app opens and when you come back to the tab. Only
+  files another device changed are downloaded.
+- The indicator in the header shows the state (Synced, Pending, Syncing, Sync
+  failed, Sync paused). Click it to retry after a failure, or to resume after
+  your Google session expires.
+- The first time a browser syncs, nothing is overwritten unless that's safe.
+  If this browser's data and Drive's copy differ, auto-sync waits for you to
+  press Fetch or Sync once.
+- There's no conflict detection: if two devices edit before syncing, the
+  latest upload wins.
+
+The two header buttons still force a full transfer:
 
 - **Sync** uploads every document to Drive, overwriting the copies there.
 - **Fetch** downloads them and replaces the local copies. A document that does

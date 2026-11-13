@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import SyncStatus from './SyncStatus';
 import './Header.css';
 
 const Header = ({ onAddStar, onSignOut, onSync, onFetchData }) => {
@@ -15,6 +16,7 @@ const Header = ({ onAddStar, onSignOut, onSync, onFetchData }) => {
         <button onClick={() => navigate('/gallery')} className="header-btn insta-btn">Gallery</button>
         <button onClick={() => navigate('/updates')} className="header-btn updates-btn">Updates</button>
         <button onClick={onAddStar} className="header-btn add-star-btn">Add Star</button>
+        <SyncStatus />
         <button onClick={onFetchData} className="header-btn fetch-btn"></button>
         <button onClick={onSync} className="header-btn sync-btn"></button>
         <button onClick={onSignOut} className="header-btn signout-btn"></button>

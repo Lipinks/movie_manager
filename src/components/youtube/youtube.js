@@ -1,6 +1,7 @@
 import './youtube.css';
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import * as youtubeService from '../../services/youtubeService';
+import { useRemoteRefresh } from '../../hooks/useRemoteRefresh';
 
 // Memoized Video Card Component with click-to-play
 const VideoCard = memo(({ url, index, onDelete }) => {
@@ -89,6 +90,15 @@ export default function YoutubePage() {
     setVideos(youtubeService.getVideos());
     setIsLoading(false);
   }, []);
+
+  // Deletion is by position, so close any open delete prompt when the list
+  // changes underneath it rather than risk removing a different video.
+  useRemoteRefresh(
+    useCallback(() => {
+      setVideos(youtubeService.getVideos());
+      setDeleteIndex(null);
+    }, [])
+  );
 
   const handleAddVideo = useCallback(() => {
     const result = youtubeService.addVideo(newVideoUrl);

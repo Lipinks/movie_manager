@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CategoryDialog from './CategoryDialog';
 import * as tagService from '../../services/tagService';
+import { useRemoteRefresh } from '../../hooks/useRemoteRefresh';
 import './CategoryPage.css';
 
 /**
@@ -63,6 +64,7 @@ const CategoryPage = () => {
   const [editing, setEditing] = useState(null);
 
   const refresh = useCallback(() => setCategories(tagService.getCategories()), []);
+  useRemoteRefresh(refresh);
 
   const openCategory = (name) => navigate(`/videos?tag=${encodeURIComponent(name)}`);
 

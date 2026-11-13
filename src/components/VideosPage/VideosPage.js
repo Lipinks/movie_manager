@@ -8,6 +8,7 @@ import * as starsService from '../../services/starsService';
 import * as tagService from '../../services/tagService';
 import { toStarKey, toDisplayName } from '../../utils/starName';
 import { shuffle } from '../../utils/arrayUtils';
+import { useRemoteRefresh } from '../../hooks/useRemoteRefresh';
 // The Data Base value is user-entered, so it is only rendered as a link once
 // confirmed to be http(s) — this keeps a pasted `javascript:` value inert.
 import { isHttpUrl } from '../../utils/url';
@@ -41,7 +42,7 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
   const [availableTags, setAvailableTags] = useState(() => tagService.getTags());
   // The full roster, so stars with zero videos still appear in the sidebar
   // and in the add-video star picker.
-  const [roster] = useState(() => starsService.getStars());
+  const [roster, setRoster] = useState(() => starsService.getStars());
 
   // The active category lives in the URL (?tag=…) so it is one mechanism
   // shared by the sidebar filter, the tag chips on a card, and the links from
@@ -84,6 +85,13 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
   useEffect(() => {
     reload();
   }, [reload]);
+
+  useRemoteRefresh(
+    useCallback(() => {
+      setRoster(starsService.getStars());
+      reload();
+    }, [reload])
+  );
 
   /* ---------------------------------------------------------------- *
    * Derived data

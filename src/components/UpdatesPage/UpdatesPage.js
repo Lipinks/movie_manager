@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as updatesService from '../../services/updatesService';
 import { getFaviconUrl } from '../../utils/url';
+import { useRemoteRefresh } from '../../hooks/useRemoteRefresh';
 import './UpdatesPage.css';
 
 /** Above this many links, confirm before spraying tabs across the browser. */
@@ -65,9 +66,13 @@ const UpdatesPage = () => {
   const [form, setForm] = useState({ name: '', url: '', isVPN: false });
   const [status, setStatus] = useState(null);
 
+  const loadSites = useCallback(() => setSites(updatesService.getSites()), []);
+
   useEffect(() => {
-    setSites(updatesService.getSites());
-  }, []);
+    loadSites();
+  }, [loadSites]);
+
+  useRemoteRefresh(loadSites);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
