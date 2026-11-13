@@ -45,7 +45,7 @@ const ScrollToTop = () => {
   return null;
 };
 
-const BigAndBingApp = () => {
+const App = () => {
   const [accessToken, setAccessToken] = useState(() => authService.getAccessToken());
   const [showAddStar, setShowAddStar] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -153,4 +153,4 @@ const BigAndBingApp = () => {
   );
 };
 
-export default BigAndBingApp;
+export default App;

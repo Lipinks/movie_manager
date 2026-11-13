@@ -1,93 +1,82 @@
-# Star Directory App
+# Movie Manager
 
-## Setup and Run Locally
+A personal, browser-only media organiser built with React. It tracks stars, the
+videos filed under each one, video categories, YouTube embeds, an image gallery
+and a list of websites to check for updates. All data lives in the browser's
+localStorage and is backed up to your own Google Drive.
+
+Live site: <https://lipinks.github.io/movie_manager>
+
+## Features
+
+- **Stars**: a photo grid of stars that can be shuffled or sorted
+  alphabetically. Each star has a page with its videos, an optional database
+  link, and an edit dialog.
+- **Videos**: every video across all stars, filterable by category and star,
+  sortable by creation or modified time, and shuffleable.
+- **Categories**: one card per tag, with a cover picked automatically (or
+  pinned by hand). Videos can be added to or removed from a category, and a
+  category can be deleted without deleting its videos.
+- **YouTube**: saved embeds. Paste a watch URL, a `youtu.be` link or an
+  `<iframe>` snippet.
+- **Gallery**: browse, upload and delete images in a `gallery` folder (and its
+  subfolders) in your Google Drive.
+- **Updates**: a saved list of websites, with a button to open them all.
+
+## How data is stored
+
+Everything except the Gallery is kept in localStorage. Two header buttons move
+it to and from Google Drive:
+
+- **Sync** uploads every document to Drive, overwriting the copies there.
+- **Fetch** downloads them and replaces the local copies. A document that does
+  not exist on Drive yet leaves its local copy untouched.
+
+The documents are JSON files in your Drive: `star.json`, `favorites.json`,
+`tags.json`, `youtube.json`, `categoryThumbnails.json` and `updates.json`.
+
+Sign-in uses Google Identity Services with the full `drive` scope. Access
+tokens last about an hour and are renewed silently while your Google session
+is alive; if renewal needs you, the app returns to the login screen.
+
+## Run locally
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
-2. Create a `.env` file in the root directory and add your Google Drive API credentials:
+2. Optional: to use your own Google OAuth client instead of the default one in
+   `src/App.js`, create a `.env.local` file:
+
    ```
    REACT_APP_GOOGLE_CLIENT_ID=your_client_id_here
    ```
 
-3. Start the development server:
+   The OAuth client must list the origin you run on (for example
+   `http://localhost:3000`) as an authorised JavaScript origin.
+
+3. Start the dev server, which opens <http://localhost:3000>:
+
    ```bash
    npm start
    ```
 
-   The app will open in your browser at [http://localhost:3000](http://localhost:3000)
+## Scripts
 
-## Available Scripts
+| Command          | What it does                                                    |
+| ---------------- | --------------------------------------------------------------- |
+| `npm start`      | Dev server with hot reload                                      |
+| `npm test`       | Jest tests in watch mode                                        |
+| `npm run build`  | Production build into `build/`                                  |
+| `npm run deploy` | Builds, then publishes `build/` to the `gh-pages` branch        |
 
-In the project directory, you can run:
+## Project layout
 
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-
-## Features
-- Google Drive Integration
-- Star Directory Management
-- Local Data Persistence
-- Responsive Photo Grid Layout
+- `src/services/`: data access. Each store has one service, and components never
+  read or write localStorage directly.
+- `src/utils/`: the localStorage cache, URL validation, and date and name helpers.
+- `src/components/`: one folder per page, plus `common/` for shared dialogs and
+  controls.
+- `src/styles/`: shared theme tokens and modal and card styles.
