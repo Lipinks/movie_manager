@@ -23,6 +23,10 @@ import './VideoDialog.css';
  *                                    used by the videos page, where the target
  *                                    star is not implied by the route
  * @param {string}   [initialStarName]
+ * @param {string[]} [defaultTags]    a new video's starting tags (its star's
+ *                                    tags, on that star's page)
+ * @param {Function} [starTagsFor]    name -> that star's tags, applied when a
+ *                                    star is picked in the star picker
  */
 
 const EMPTY_VIDEO = {
@@ -44,14 +48,29 @@ const VideoDialog = ({
   onCancel,
   starOptions = null,
   initialStarName = '',
+  defaultTags = [],
+  starTagsFor = null,
 }) => {
   const [formData, setFormData] = useState(() => ({
     ...EMPTY_VIDEO,
     ...initialValue,
-    tags: Array.isArray(initialValue?.tags) ? initialValue.tags : [],
+    tags: Array.isArray(initialValue?.tags) ? initialValue.tags : [...defaultTags],
   }));
   const [starName, setStarName] = useState(initialStarName);
   const [error, setError] = useState('');
+
+  // Tags that came from the picked star (not chosen by hand), so picking a
+  // different star can swap them out without touching the user's own picks.
+  const [starAddedTags, setStarAddedTags] = useState([]);
+
+  const handleStarChange = (name) => {
+    const incoming = starTagsFor?.(name) || [];
+    const kept = formData.tags.filter((tag) => !starAddedTags.includes(tag));
+    const added = incoming.filter((tag) => !kept.includes(tag));
+    setFormData((prev) => ({ ...prev, tags: [...kept, ...added] }));
+    setStarAddedTags(added);
+    setStarName(name);
+  };
 
   const handleSave = () => {
     if (!formData.name.trim() || !formData.imageUrl.trim()) {
@@ -80,7 +99,7 @@ const VideoDialog = ({
             <Dropdown
               value={starName}
               options={starOptions}
-              onSelect={setStarName}
+              onSelect={handleStarChange}
               placeholder="Select a star"
             />
           </div>

@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import ThumbnailPreview from '../../common/ThumbnailPreview';
+import TagEditor from '../../common/TagEditor';
+import { useTagSelection } from '../../../hooks/useTagSelection';
 import './EditStarDialog.css';
 
 /**
- * Edit a star's thumbnail.
+ * Edit a star's thumbnail, Data Base link and tags.
  *
  * The name is deliberately read-only: it is the route param *and* the key its
  * videos are filed under, so renaming would orphan them.
@@ -17,6 +19,7 @@ const EditStarDialog = ({ star, onSave, onCancel }) => {
     Image_Link: star.Image_Link || '',
     Data_Base: star.Data_Base || '',
   });
+  const starTags = useTagSelection(star.Tags);
   const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
@@ -33,7 +36,7 @@ const EditStarDialog = ({ star, onSave, onCancel }) => {
 
     setError('');
     // Data Base is optional; everything else on the star is carried through.
-    onSave({ ...star, Image_Link: imageLink, Data_Base: form.Data_Base.trim() });
+    onSave({ ...star, Image_Link: imageLink, Data_Base: form.Data_Base.trim(), Tags: starTags.tags });
   };
 
   return (
@@ -99,6 +102,23 @@ const EditStarDialog = ({ star, onSave, onCancel }) => {
               </div>
             </div>
             <div className="input-hint">Optional — leave blank to hide the Data Base button</div>
+          </div>
+
+          <div className="input-group">
+            <div className="input-label">
+              <i className="fas fa-tags"></i>
+              <span>Tags</span>
+            </div>
+            <div className="star-tags-section">
+              <TagEditor
+                selectedTags={starTags.tags}
+                availableTags={starTags.vocabulary}
+                onAdd={starTags.add}
+                onRemove={starTags.remove}
+                onCreate={starTags.create}
+              />
+            </div>
+            <div className="input-hint">New videos of this star start with these tags</div>
           </div>
 
           {error && <p className="modal-error" role="alert">{error}</p>}

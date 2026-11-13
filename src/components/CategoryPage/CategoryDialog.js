@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import * as favoritesService from '../../services/favoritesService';
 import * as tagService from '../../services/tagService';
+import * as starsService from '../../services/starsService';
 import ShowMore from '../common/ShowMore';
 import { usePaged } from '../../hooks/usePaged';
 import './CategoryDialog.css';
@@ -136,11 +137,16 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
 
   const handleDeleteCategory = () => {
     const count = assigned.length;
-    const impact = count
-      ? `It will be removed from ${count} video${count === 1 ? '' : 's'}.`
-      : 'No videos are using it.';
+    const starCount = starsService
+      .getStars()
+      .filter((star) => Array.isArray(star.Tags) && star.Tags.includes(categoryName)).length;
+    const users = [
+      count && `${count} video${count === 1 ? '' : 's'}`,
+      starCount && `${starCount} star${starCount === 1 ? '' : 's'}`,
+    ].filter(Boolean);
+    const impact = users.length ? `It will be removed from ${users.join(' and ')}.` : 'No videos or stars are using it.';
 
-    if (!window.confirm(`Delete the category "${categoryName}"?\n\n${impact}\nThe videos themselves will not be deleted.`)) {
+    if (!window.confirm(`Delete the category "${categoryName}"?\n\n${impact}\nThe videos and stars themselves will not be deleted.`)) {
       return;
     }
 

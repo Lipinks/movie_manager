@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import * as authService from './services/authService';
 import * as autoSyncService from './services/autoSyncService';
 import * as starsService from './services/starsService';
+import * as storage from './utils/storage';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import LoginPage from './components/LoginPage/LoginPage';
 import LoadingPage from './components/LoadingPage/LoadingPage';
@@ -54,6 +55,16 @@ const App = () => {
   // expired token that cannot be renewed silently drops us back to the login
   // screen instead of leaving a dead app on screen.
   useEffect(() => authService.subscribe(setAccessToken), []);
+
+  // Keep the roster in step with every write to it, not just App's own: for
+  // example, deleting a category also strips that tag from stars.
+  useEffect(
+    () =>
+      storage.subscribe((key) => {
+        if (key === storage.KEYS.STARS) setStars(starsService.getStars());
+      }),
+    []
+  );
 
   // Sync with Drive automatically while signed in. Keyed on signed-in-ness,
   // not the token itself, so an hourly token renewal doesn't restart it.

@@ -42,3 +42,14 @@
   color: var(--dark-text-faint, #a0a0a0);
   font-size: 13px;
 }
+
+/* Star tags (also used inside the Edit Star dialog). */
+.star-tags-section {
+  margin-top: 14px;
+}
+
+.star-tags-hint {
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--dark-text, #475569);
+}

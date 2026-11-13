@@ -1,5 +1,6 @@
 import * as storage from '../utils/storage';
 import * as favoritesService from './favoritesService';
+import * as starsService from './starsService';
 
 /**
  * The global tag vocabulary shared by stars and videos.
@@ -38,9 +39,9 @@ export const addTag = (tag) => {
  * Delete a category.
  *
  * The tag is dropped from the vocabulary *and* un-assigned from every video
- * that carried it. No video is deleted, and each video keeps all of its other
- * tags and fields — a category is metadata, so removing it only severs the
- * relationship.
+ * and star that carried it. No video or star is deleted, and each keeps all
+ * of its other tags and fields — a category is metadata, so removing it only
+ * severs the relationship.
  *
  * @returns the remaining, sorted tag list
  */
@@ -48,6 +49,17 @@ export const deleteTag = (tag) => {
   // Un-tag first: if this throws (e.g. storage quota) the vocabulary is left
   // intact, so the category is still visible rather than silently orphaned.
   favoritesService.removeTagEverywhere(tag);
+  // Stars too, or a star would hand the deleted tag to its next new video.
+  const stars = starsService.getStars();
+  if (stars.some((star) => Array.isArray(star.Tags) && star.Tags.includes(tag))) {
+    starsService.saveStars(
+      stars.map((star) =>
+        Array.isArray(star.Tags) && star.Tags.includes(tag)
+          ? { ...star, Tags: star.Tags.filter((existing) => existing !== tag) }
+          : star
+      )
+    );
+  }
   clearCategoryThumbnail(tag);
 
   const next = getTags().filter((existing) => existing !== tag);

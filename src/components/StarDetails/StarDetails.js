@@ -43,6 +43,7 @@ const StarDetails = ({ stars = [], onStarsUpdate }) => {
         starName={star.Name}
         starImage={star.Image_Link}
         starDataBase={star.Data_Base}
+        starTags={star.Tags}
         onEditStar={() => setShowEditStar(true)}
       />
     </div>

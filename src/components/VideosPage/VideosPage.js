@@ -28,6 +28,9 @@ const orderOptions = [
 
 const byName = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
 
+/** A star's tags, ignoring anything malformed in older data. */
+const tagList = (tags) => (Array.isArray(tags) ? tags.filter((tag) => typeof tag === 'string' && tag.trim()) : []);
+
 /** Cards rendered at first and per "show more"; the rest load as you scroll. */
 const VIDEOS_PER_PAGE = 50;
 
@@ -41,7 +44,7 @@ const SHOW_STAR_SEARCH = false;
  * and embedded in a star's page (starName set). All reads and writes go
  * through favoritesService so the storage shape lives in exactly one place.
  */
-const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
+const VideosPage = ({ starName = '', starImage, starDataBase, starTags, onEditStar }) => {
   const isMainVideosTab = starName === '';
 
   const [videos, setVideos] = useState([]);
@@ -145,6 +148,13 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
 
   const starSelectOptions = useMemo(
     () => roster.map((star) => ({ value: star.Name, label: star.Name })),
+    [roster]
+  );
+
+  // New videos start with their star's tags (see VideoDialog).
+  const ownTags = useMemo(() => tagList(starTags), [starTags]);
+  const starTagsFor = useCallback(
+    (name) => tagList(roster.find((star) => star.Name === name)?.Tags),
     [roster]
   );
 
@@ -262,6 +272,21 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
               <img src={starImage} alt={starName} />
             </div>
             <h2 className="sidebar-star-name">{starName}</h2>
+            {ownTags.length > 0 && (
+              <div className="sidebar-star-tags" aria-label={`${starName}'s tags`}>
+                {ownTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`sidebar-star-tag ${selectedTag === tag ? 'is-active' : ''}`}
+                    onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
+                    title={`Show ${starName}'s ${tag} videos`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="sidebar-star-actions">
               {isHttpUrl(starDataBase) && (
                 <a
@@ -396,6 +421,8 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
         <VideoDialog
           title="Add New Video"
           saveLabel="Save"
+          defaultTags={isMainVideosTab ? [] : ownTags}
+          starTagsFor={isMainVideosTab ? starTagsFor : null}
           tags={availableTags}
           onCreateTag={handleCreateTag}
           onSave={handleAddVideo}

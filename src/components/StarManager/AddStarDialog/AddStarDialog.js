@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import ThumbnailPreview from '../../common/ThumbnailPreview';
+import TagEditor from '../../common/TagEditor';
+import { useTagSelection } from '../../../hooks/useTagSelection';
 import './AddStarDialog.css';
 
 /**
@@ -11,7 +13,8 @@ import './AddStarDialog.css';
  * @param {(name: string) => boolean} isDuplicateName
  */
 const AddStarDialog = ({ onSave, onCancel, isDuplicateName }) => {
-  const [star, setStar] = useState({ Name: '', Image_Link: '', Data_Base: '', Tags: [] });
+  const [star, setStar] = useState({ Name: '', Image_Link: '', Data_Base: '' });
+  const starTags = useTagSelection([]);
   const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
@@ -34,7 +37,7 @@ const AddStarDialog = ({ onSave, onCancel, isDuplicateName }) => {
 
     setError('');
     // Data Base is optional — an empty value simply means the star has no link.
-    onSave({ ...star, Name: name, Image_Link: imageLink, Data_Base: star.Data_Base.trim() });
+    onSave({ ...star, Name: name, Image_Link: imageLink, Data_Base: star.Data_Base.trim(), Tags: starTags.tags });
   };
 
   return (
@@ -65,6 +68,17 @@ const AddStarDialog = ({ onSave, onCancel, isDuplicateName }) => {
             placeholder="Data Base link (optional)"
             value={star.Data_Base}
             onChange={handleInputChange}
+          />
+        </div>
+
+        <div className="star-tags-section">
+          <div className="star-tags-hint">New videos of this star start with these tags.</div>
+          <TagEditor
+            selectedTags={starTags.tags}
+            availableTags={starTags.vocabulary}
+            onAdd={starTags.add}
+            onRemove={starTags.remove}
+            onCreate={starTags.create}
           />
         </div>
 

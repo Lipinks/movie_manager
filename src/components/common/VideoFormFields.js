@@ -1,4 +1,5 @@
 import TagEditor from './TagEditor';
+import { formatDurationInput } from '../../utils/duration';
 import './VideoFormFields.css';
 
 /**
@@ -19,6 +20,14 @@ const VideoFormFields = ({ formData, setFormData, tags = [], onCreateTag }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  // The ':' appears as the minutes are typed. While deleting, it isn't
+  // re-added, so backspace can remove it like any other character.
+  const handleDurationChange = (e) => {
+    const deleting = String(e.nativeEvent?.inputType || '').startsWith('delete');
+    const videoDuration = formatDurationInput(e.target.value, { autoColon: !deleting });
+    setFormData((prev) => ({ ...prev, videoDuration }));
   };
 
   const addTag = (tag) => {
@@ -81,9 +90,12 @@ const VideoFormFields = ({ formData, setFormData, tags = [], onCreateTag }) => {
           <input
             type="text"
             name="videoDuration"
-            placeholder="Duration"
+            placeholder="mm:ss"
+            // A number pad on phones; its '.' key types the ':'.
+            inputMode="decimal"
+            autoComplete="off"
             value={formData.videoDuration || ''}
-            onChange={handleInputChange}
+            onChange={handleDurationChange}
           />
         </div>
         <div className="label-input vpn-input">

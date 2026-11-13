@@ -1153,3 +1153,28 @@
     transform: none;
   }
 }
+/* A star's tags under their name on their page; a click filters by the tag. */
+.sidebar-star-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+
+.sidebar-star-tag {
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--dark-accent-bg, #f0f4ff);
+  color: var(--dark-accent-text, #4c51bf);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sidebar-star-tag:hover,
+.sidebar-star-tag.is-active {
+  border-color: currentColor;
+}
