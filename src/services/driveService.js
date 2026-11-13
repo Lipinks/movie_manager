@@ -36,7 +36,44 @@ export const driveJson = async (url, options) => {
   return response.json();
 };
 
-export const listFiles = async (token) => {
-  const data = await driveJson(`${DRIVE_API}/files?fields=files(id,name,modifiedTime)`, { token });
-  return data.files || [];
+/** Escape a value for use inside a single-quoted Drive query string literal. */
+const escapeQueryValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+/**
+ * Find the user's non-trashed files with any of the given exact names.
+ *
+ * This replaced an unfiltered `files.list` call. Drive returns only 100 files
+ * per page by default (and includes trashed files), so once the Drive held
+ * more than that, the app's own JSON files could fall off the first page and
+ * look "missing" — which made Fetch overwrite local data with empty values and
+ * Sync upload duplicates instead of updating the existing files.
+ *
+ * Results are newest-modified first, so when duplicates exist (e.g. left over
+ * from that bug) `files.find(byName)` picks the most recent copy.
+ *
+ * @param {string}   token
+ * @param {string[]} names  exact file names to look for
+ * @returns {Promise<{id: string, name: string, modifiedTime: string}[]>}
+ */
+export const findFilesByName = async (token, names) => {
+  if (!names.length) return [];
+
+  const nameClause = names.map((name) => `name = '${escapeQueryValue(name)}'`).join(' or ');
+  const params = new URLSearchParams({
+    q: `(${nameClause}) and trashed = false`,
+    fields: 'nextPageToken,files(id,name,modifiedTime)',
+    orderBy: 'modifiedTime desc',
+    pageSize: '1000',
+  });
+
+  const files = [];
+  let pageToken = null;
+  do {
+    if (pageToken) params.set('pageToken', pageToken);
+    const data = await driveJson(`${DRIVE_API}/files?${params}`, { token });
+    files.push(...(data.files || []));
+    pageToken = data.nextPageToken || null;
+  } while (pageToken);
+
+  return files;
 };

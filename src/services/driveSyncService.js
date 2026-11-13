@@ -1,22 +1,13 @@
-import { driveFetch, driveJson, listFiles, DRIVE_API, UPLOAD_API } from './driveService';
+import { driveFetch, driveJson, findFilesByName, DRIVE_API, UPLOAD_API } from './driveService';
 import { withAuth } from './authService';
 import * as storage from '../utils/storage';
 
 /**
- * Two-way synchronisation of the app's four JSON documents with Google Drive.
+ * Two-way synchronisation of the app's JSON documents with Google Drive.
  *
  * (Formerly `starService` — the name understated its job: stars are only one
- * of the four files it moves.)
+ * of the files it moves.)
  */
-
-const FILES = {
-  STAR: 'star.json',
-  FAVORITES: 'favorites.json',
-  TAGS: 'tags.json',
-  YOUTUBE: 'youtube.json',
-  CATEGORY_THUMBNAILS: 'categoryThumbnails.json',
-  UPDATES: 'updates.json',
-};
 
 /**
  * Coerce whatever is in storage/Drive into a plain stars array, tolerating the
@@ -28,9 +19,27 @@ const normalizeStars = (raw) => {
   return [];
 };
 
+/** Each synced document: its Drive file name, its localStorage key, and its empty value. */
+const STARS = { file: 'star.json', key: storage.KEYS.STARS, empty: [] };
+const OTHER_DOCUMENTS = [
+  { file: 'favorites.json', key: storage.KEYS.FAVORITES, empty: {} },
+  { file: 'tags.json', key: storage.KEYS.TAGS, empty: [] },
+  { file: 'youtube.json', key: storage.KEYS.YOUTUBE, empty: [] },
+  { file: 'categoryThumbnails.json', key: storage.KEYS.CATEGORY_THUMBNAILS, empty: {} },
+  { file: 'updates.json', key: storage.KEYS.UPDATES, empty: [] },
+];
+const DOCUMENTS = [STARS, ...OTHER_DOCUMENTS];
+const FILE_NAMES = DOCUMENTS.map((doc) => doc.file);
+
+/** The local value of a document, in the shape that is uploaded. */
+const readLocal = (doc) => {
+  const value = storage.getItem(doc.key, doc.empty);
+  return doc === STARS ? normalizeStars(value) : value;
+};
+
 /**
  * Create or overwrite a JSON file on Drive. `existingFile` (from a single
- * listFiles call) is passed in so callers can list once and save many.
+ * lookup) is passed in so callers can look up once and save many.
  */
 const saveFile = async (token, fileName, data, existingFile) => {
   const fileContent = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -71,65 +80,41 @@ const fetchFile = async (token, fileName, files) => {
 /** Push every locally stored document up to Drive. */
 export const syncToDrive = async () =>
   withAuth(async (token) => {
-    // List once, then upload all four files in parallel.
-    const files = await listFiles(token);
+    // Look the files up once, then upload all of them in parallel.
+    const files = await findFilesByName(token, FILE_NAMES);
     const findFile = (name) => files.find((f) => f.name === name);
 
-    const payloads = [
-      [FILES.STAR, normalizeStars(storage.getItem(storage.KEYS.STARS, []))],
-      [FILES.FAVORITES, storage.getItem(storage.KEYS.FAVORITES, {})],
-      [FILES.TAGS, storage.getItem(storage.KEYS.TAGS, [])],
-      [FILES.YOUTUBE, storage.getItem(storage.KEYS.YOUTUBE, [])],
-      [FILES.CATEGORY_THUMBNAILS, storage.getItem(storage.KEYS.CATEGORY_THUMBNAILS, {})],
-      [FILES.UPDATES, storage.getItem(storage.KEYS.UPDATES, [])],
-    ];
-
-    await Promise.all(payloads.map(([name, data]) => saveFile(token, name, data, findFile(name))));
+    await Promise.all(DOCUMENTS.map((doc) => saveFile(token, doc.file, readLocal(doc), findFile(doc.file))));
   });
 
 /**
  * Pull every document down from Drive into localStorage.
- * @returns the fetched stars array (the caller drives React state with it).
+ *
+ * A document is only overwritten locally when Drive actually has it. A failed
+ * download, or a file that does not exist on Drive (for example a Drive
+ * account that predates that file), leaves the local copy untouched instead
+ * of replacing it with an empty value.
+ *
+ * @returns the stars array now in effect (the caller drives React state with it).
  */
 export const fetchFromDrive = async () =>
   withAuth(async (token) => {
-    const files = await listFiles(token);
+    const files = await findFilesByName(token, FILE_NAMES);
 
-    // Fetch all six; a failure on one must NOT wipe the others' local data.
-    const [starsResult, favoritesResult, tagsResult, youtubeResult, coversResult, updatesResult] =
-      await Promise.allSettled([
-        fetchFile(token, FILES.STAR, files),
-        fetchFile(token, FILES.FAVORITES, files),
-        fetchFile(token, FILES.TAGS, files),
-        fetchFile(token, FILES.YOUTUBE, files),
-        fetchFile(token, FILES.CATEGORY_THUMBNAILS, files),
-        fetchFile(token, FILES.UPDATES, files),
-      ]);
+    // Fetch all in parallel; a failure on one must NOT wipe the others' local data.
+    const [starsResult, ...otherResults] = await Promise.allSettled(
+      DOCUMENTS.map((doc) => fetchFile(token, doc.file, files))
+    );
 
-    // Only overwrite a localStorage key when its fetch actually succeeded.
-    // A rejected fetch (transient network/HTTP error) leaves existing data intact.
-    if (favoritesResult.status === 'fulfilled') {
-      storage.setItem(storage.KEYS.FAVORITES, favoritesResult.value || {});
-    }
-    if (tagsResult.status === 'fulfilled') {
-      storage.setItem(storage.KEYS.TAGS, tagsResult.value || []);
-    }
-    if (youtubeResult.status === 'fulfilled') {
-      storage.setItem(storage.KEYS.YOUTUBE, youtubeResult.value || []);
-    }
-    // These two files are newer than the others, so a Drive account that
-    // predates them simply has no copy. `null` there means "absent", not
-    // "empty" — writing a blank value would wipe data saved before the first
-    // sync that included them.
-    if (coversResult.status === 'fulfilled' && coversResult.value) {
-      storage.setItem(storage.KEYS.CATEGORY_THUMBNAILS, coversResult.value);
-    }
-    if (updatesResult.status === 'fulfilled' && updatesResult.value) {
-      storage.setItem(storage.KEYS.UPDATES, updatesResult.value);
-    }
+    otherResults.forEach((result, i) => {
+      if (result.status === 'fulfilled' && result.value != null) {
+        storage.setItem(OTHER_DOCUMENTS[i].key, result.value);
+      }
+    });
 
     if (starsResult.status === 'rejected') {
       throw starsResult.reason;
     }
-    return normalizeStars(starsResult.value);
+    // No star.json on Drive: keep the local roster rather than emptying it.
+    return normalizeStars(starsResult.value ?? storage.getItem(STARS.key, STARS.empty));
   });
