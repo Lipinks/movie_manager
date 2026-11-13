@@ -391,8 +391,26 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
   );
 };
 
+/**
+ * Clicks inside these keep their own action (the star link, a tag filter, the
+ * edit/delete buttons) instead of opening the video.
+ */
+const OWN_ACTION = 'a, button, .video-tag';
+
+/**
+ * Open the video from a click anywhere on its card. The name, star and tags
+ * sit in an overlay on top of the picture, so a handler on the picture alone
+ * missed every click that landed on the overlay.
+ */
+const openVideoFromCard = (event, url) => {
+  if (!url || event.target.closest(OWN_ACTION)) return;
+  // Dragging to select text (say, to copy the name) also ends in a click.
+  if (window.getSelection?.()?.toString()) return;
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
+
 const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDelete }) => (
-  <div className="media-card video-card">
+  <div className="media-card video-card" onClick={(event) => openVideoFromCard(event, favorite.url)}>
     <div className="card-actions">
       <button className="action-btn edit-btn" onClick={() => onEdit(favorite)} title="Edit video" aria-label="Edit video">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -419,7 +437,6 @@ const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDel
         alt={favorite.name}
         loading="lazy"
         decoding="async"
-        onClick={() => window.open(favorite.url, '_blank', 'noopener,noreferrer')}
       />
     </div>
 

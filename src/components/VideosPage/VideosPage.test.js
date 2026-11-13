@@ -63,6 +63,48 @@ it('loads the next 50 by itself when the end of the list nears the screen', () =
   expect(cardCount(container)).toBe(100);
 });
 
+describe('clicking a video card', () => {
+  const firstCard = (container) => container.querySelector('.video-card');
+  let open;
+
+  beforeEach(() => {
+    open = jest.spyOn(window, 'open').mockImplementation(() => null);
+  });
+
+  it.each([
+    ['the picture', '.card-image img'],
+    ['the video name', '.video-name'],
+    ['the empty space beside the name and star', '.card-content'],
+    ['the space around the tags', '.video-tags-container'],
+  ])('opens the video from %s', (_, selector) => {
+    const { container } = renderPage();
+
+    fireEvent.click(firstCard(container).querySelector(selector));
+
+    expect(open).toHaveBeenCalledWith('https://example.test/watch/1', '_blank', 'noopener,noreferrer');
+  });
+
+  it('follows the star link instead of opening the video', () => {
+    const { container } = renderPage();
+    fireEvent.click(firstCard(container).querySelector('.star-name'));
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it('filters by a tag instead of opening the video', () => {
+    const { container } = renderPage();
+    fireEvent.click(firstCard(container).querySelector('.video-tag'));
+    expect(open).not.toHaveBeenCalled();
+    expect(firstCard(container).querySelector('.video-tag')).toHaveClass('highlighted');
+  });
+
+  it('edits instead of opening the video', () => {
+    const { container } = renderPage();
+    fireEvent.click(firstCard(container).querySelector('.edit-btn svg'));
+    expect(open).not.toHaveBeenCalled();
+    expect(screen.getByRole('heading', { name: 'Edit Video' })).toBeInTheDocument();
+  });
+});
+
 it('starts again from the first 50 when the category filter changes', () => {
   const { container } = renderPage();
   fireEvent.click(screen.getByRole('button', { name: 'Show more (70 left)' }));

@@ -809,6 +809,11 @@
 
 /* Edit Delete button style ends*/
 
+/* The whole card opens the video (see openVideoFromCard). */
+.video-card {
+  cursor: pointer;
+}
+
 .card-content {
   padding: 10px;
   padding-bottom: 0px;
@@ -855,6 +860,10 @@
   transition: color 0.15s ease, text-decoration-color 0.15s ease;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
   display: block;
+  /* Only the name itself is the link: the empty space beside it opens the
+     video like the rest of the card. */
+  width: fit-content;
+  max-width: 100%;
   margin-bottom: 8px;
 }
 
