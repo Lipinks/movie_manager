@@ -144,7 +144,7 @@ const BigAndBingApp = () => {
               <Route path="/category" element={<CategoryPage />} />
               <Route path="/updates" element={<UpdatesPage />} />
               <Route path="/youtube" element={<YoutubePage />} />
-              <Route path="/gallery" element={<Gallery accessToken={accessToken} />} />
+              <Route path="/gallery" element={<Gallery />} />
             </Routes>
           )}
         </ErrorBoundary>

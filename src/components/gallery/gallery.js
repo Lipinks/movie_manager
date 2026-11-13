@@ -1,8 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import './gallery.css';
 import { driveFetch, driveJson, DRIVE_API, UPLOAD_API } from '../../services/driveService';
+import { withAuth } from '../../services/authService';
 
 const IMAGES_PER_PAGE = 20;
+
+// Every Drive call goes through withAuth, so an access token that has expired
+// (they last about an hour) is renewed silently, or the session ends and the
+// app returns to the login screen, instead of the gallery failing with a 401.
+const authedDriveJson = (url, options) => withAuth((token) => driveJson(url, { ...options, token }));
+const authedDriveFetch = (url, options) => withAuth((token) => driveFetch(url, { ...options, token }));
 
 // Session-cache helpers for a folder's { folders, images } payload.
 const folderCacheKey = (id) => `galleryFolder_${id}`;
@@ -20,14 +27,14 @@ const writeFolderCache = (id, data) => {
 // via a blob URL, so the access token is never placed in an <img> src. Blob
 // URLs are revoked on unmount. Because the blob path is a fallback, a normal
 // grid load makes zero authenticated image requests and avoids 429s.
-const AuthedImage = ({ image, accessToken, alt, loading }) => {
+const AuthedImage = ({ image, alt, loading }) => {
   const [src, setSrc] = useState(image.thumbnailLink || null);
   const [failed, setFailed] = useState(false);
   const blobUrlRef = useRef(null);
 
   const loadBlob = useCallback(async () => {
     try {
-      const response = await driveFetch(`${DRIVE_API}/files/${image.id}?alt=media`, { token: accessToken });
+      const response = await authedDriveFetch(`${DRIVE_API}/files/${image.id}?alt=media`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
       blobUrlRef.current = url;
@@ -36,7 +43,7 @@ const AuthedImage = ({ image, accessToken, alt, loading }) => {
       console.error(`Error loading image ${image.name}:`, err);
       setFailed(true);
     }
-  }, [image.id, image.name, accessToken]);
+  }, [image.id, image.name]);
 
   useEffect(() => {
     if (!image.thumbnailLink) loadBlob();
@@ -60,7 +67,7 @@ const AuthedImage = ({ image, accessToken, alt, loading }) => {
   return <img src={src} alt={alt} loading={loading} onError={handleError} />;
 };
 
-const Gallery = ({ accessToken }) => {
+const Gallery = () => {
   const [images, setImages] = useState([]);
   const [subFolders, setSubFolders] = useState([]);
   const [currentFolderId, setCurrentFolderId] = useState(null);
@@ -87,9 +94,8 @@ const Gallery = ({ accessToken }) => {
 
   // Find or create the 'gallery' folder in Google Drive
   const getGalleryFolderId = useCallback(async () => {
-    const searchData = await driveJson(
-      `${DRIVE_API}/files?q=name='gallery' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`,
-      { token: accessToken }
+    const searchData = await authedDriveJson(
+      `${DRIVE_API}/files?q=name='gallery' and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)`
     );
 
     if (searchData.files && searchData.files.length > 0) {
@@ -97,14 +103,13 @@ const Gallery = ({ accessToken }) => {
     }
 
     // Create 'gallery' folder if it doesn't exist
-    const createData = await driveJson(`${DRIVE_API}/files`, {
-      token: accessToken,
+    const createData = await authedDriveJson(`${DRIVE_API}/files`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: 'gallery', mimeType: 'application/vnd.google-apps.folder' }),
     });
     return createData.id;
-  }, [accessToken]);
+  }, []);
 
   const fetchFolderContents = useCallback(async (folderId, forceRefresh = false) => {
     if (!forceRefresh) {
@@ -122,13 +127,11 @@ const Gallery = ({ accessToken }) => {
 
     try {
       const [foldersData, imagesData] = await Promise.all([
-        driveJson(
-          `${DRIVE_API}/files?q='${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)&orderBy=name`,
-          { token: accessToken }
+        authedDriveJson(
+          `${DRIVE_API}/files?q='${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)&orderBy=name`
         ),
-        driveJson(
-          `${DRIVE_API}/files?q='${folderId}' in parents and (mimeType contains 'image/') and trashed=false&fields=files(id,name,mimeType,thumbnailLink,createdTime)&orderBy=createdTime desc&pageSize=1000`,
-          { token: accessToken }
+        authedDriveJson(
+          `${DRIVE_API}/files?q='${folderId}' in parents and (mimeType contains 'image/') and trashed=false&fields=files(id,name,mimeType,thumbnailLink,createdTime)&orderBy=createdTime desc&pageSize=1000`
         ),
       ]);
 
@@ -145,11 +148,12 @@ const Gallery = ({ accessToken }) => {
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, []);
 
-  // Initialize: find gallery root folder then load its contents
+  // Initialize: find gallery root folder then load its contents. Runs once:
+  // it no longer depends on the token, so a silent token renewal does not
+  // reset the user back to the root folder.
   useEffect(() => {
-    if (!accessToken) return;
     (async () => {
       try {
         let rootId = sessionStorage.getItem('galleryFolderId');
@@ -165,7 +169,7 @@ const Gallery = ({ accessToken }) => {
         setLoading(false);
       }
     })();
-  }, [accessToken, getGalleryFolderId, fetchFolderContents]);
+  }, [getGalleryFolderId, fetchFolderContents]);
 
   const handleUpload = async (event) => {
     const files = Array.from(event.target.files);
@@ -190,9 +194,9 @@ const Gallery = ({ accessToken }) => {
         formData.append('file', file);
 
         uploaded.push(
-          await driveJson(
+          await authedDriveJson(
             `${UPLOAD_API}/files?uploadType=multipart&fields=id,name,mimeType,thumbnailLink,createdTime`,
-            { token: accessToken, method: 'POST', body: formData }
+            { method: 'POST', body: formData }
           )
         );
       } catch (err) {
@@ -226,7 +230,7 @@ const Gallery = ({ accessToken }) => {
     if (!window.confirm(`Are you sure you want to delete "${imageName}"?`)) return;
 
     try {
-      await driveFetch(`${DRIVE_API}/files/${imageId}`, { token: accessToken, method: 'DELETE' });
+      await authedDriveFetch(`${DRIVE_API}/files/${imageId}`, { method: 'DELETE' });
 
       setImages(prev => {
         const updated = prev.filter(img => img.id !== imageId);
@@ -258,7 +262,7 @@ const Gallery = ({ accessToken }) => {
     setFullImageError(false);
 
     try {
-      const response = await driveFetch(`${DRIVE_API}/files/${image.id}?alt=media`, { token: accessToken });
+      const response = await authedDriveFetch(`${DRIVE_API}/files/${image.id}?alt=media`);
       const blob = await response.blob();
       setFullImageUrl(URL.createObjectURL(blob));
     } catch (err) {
@@ -267,7 +271,7 @@ const Gallery = ({ accessToken }) => {
     } finally {
       setLoadingFullImage(false);
     }
-  }, [accessToken]);
+  }, []);
 
   const closeModal = useCallback(() => {
     if (fullImageUrl && fullImageUrl.startsWith('blob:')) {
@@ -431,7 +435,7 @@ const Gallery = ({ accessToken }) => {
                   className="gallery-item"
                   onClick={() => fetchFullImage(image, index)}
                 >
-                  <AuthedImage image={image} accessToken={accessToken} alt={image.name} loading="lazy" />
+                  <AuthedImage image={image} alt={image.name} loading="lazy" />
                   <div className="gallery-item-overlay">
                     <span className="gallery-item-name">{image.name}</span>
                   </div>
