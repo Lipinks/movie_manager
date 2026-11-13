@@ -10,8 +10,9 @@ import './StarManager.css';
 const byStarName = (a, b) =>
   String(a.star?.Name ?? '').localeCompare(String(b.star?.Name ?? ''), undefined, { sensitivity: 'base' });
 
-const StarManager = ({ showAddStarModal, closeAddStarModal, updateStarDetails, stars }) => {
+const StarManager = ({ updateStarDetails, stars }) => {
   const navigate = useNavigate();
+  const [showAddStar, setShowAddStar] = useState(false);
 
   // A star's Name is NOT guaranteed unique — nothing enforced it before the
   // add dialog gained its duplicate check, and older data can still carry
@@ -36,7 +37,7 @@ const StarManager = ({ showAddStarModal, closeAddStarModal, updateStarDetails, s
 
   const handleSave = (newStar) => {
     updateStarDetails([...stars, newStar]);
-    closeAddStarModal();
+    setShowAddStar(false);
   };
 
   const handleDelete = ({ star, index }) => {
@@ -59,33 +60,41 @@ const StarManager = ({ showAddStarModal, closeAddStarModal, updateStarDetails, s
 
   return (
     <div className="star-manager">
-      {/* Floating over the header rather than inside it: these are page
-          controls for the stars grid, not app-wide navigation. */}
-      <div className="star-shuffle-controls">
-        <button
-          type="button"
-          className="star-shuffle-btn"
-          onClick={() => setDisplayStars((prev) => shuffle(prev))}
-          title="Shuffle stars"
-          aria-label="Shuffle stars"
-        >
-          🔀
-        </button>
-        <button
-          type="button"
-          className="star-shuffle-btn"
-          onClick={() => setDisplayStars(alphabetical)}
-          title="Sort alphabetically"
-          aria-label="Sort stars alphabetically"
-        >
-          🔠
-        </button>
+      {/* Page controls for the stars grid, kept with the grid rather than in
+          the app-wide header. */}
+      <div className="star-toolbar">
+        <h1 className="star-toolbar-title">
+          Stars <span className="star-toolbar-count">{stars.length}</span>
+        </h1>
+        <div className="star-toolbar-actions">
+          <button type="button" className="star-add-btn" onClick={() => setShowAddStar(true)}>
+            <span aria-hidden="true">⭐</span> Add Star
+          </button>
+          <button
+            type="button"
+            className="star-shuffle-btn"
+            onClick={() => setDisplayStars((prev) => shuffle(prev))}
+            title="Shuffle stars"
+            aria-label="Shuffle stars"
+          >
+            🔀
+          </button>
+          <button
+            type="button"
+            className="star-shuffle-btn"
+            onClick={() => setDisplayStars(alphabetical)}
+            title="Sort alphabetically"
+            aria-label="Sort stars alphabetically"
+          >
+            🔠
+          </button>
+        </div>
       </div>
 
-      {showAddStarModal && (
+      {showAddStar && (
         <AddStarDialog
           onSave={handleSave}
-          onCancel={closeAddStarModal}
+          onCancel={() => setShowAddStar(false)}
           isDuplicateName={(name) => starsService.exists(stars, name)}
         />
       )}

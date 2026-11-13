@@ -19,10 +19,9 @@
     z-index: 1000;
     background-color: #FFD700; /* Golden background */
     color: var(--dark-text-strong, #000); /* Black text for contrast */
-    padding: 5px 5px;
-    padding-right: 200px;
+    padding: 5px 10px;
     display: flex;
-    justify-content: space-between;
+    gap: 12px;
     align-items: center;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
     border-radius: 12px;
@@ -81,6 +80,20 @@
 .header-buttons {
     display: flex;
     gap: 12px;
+    margin-left: auto;
+    position: relative;
+    z-index: 1;
+}
+
+/* Search, theme and the sync/sign-out menu: always visible, set apart from
+   the page navigation by a thin divider. */
+.header-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+    align-items: center;
+    padding-left: 12px;
+    border-left: 1px solid rgba(0, 0, 0, 0.15);
     position: relative;
     z-index: 1;
 }
@@ -145,106 +158,8 @@
     content: "🔔";
 }
 
-.fetch-btn::after {
-    content: "⬇️";
-}
-
-.sync-btn::after {
-    content: "⬆️";
-}
-
-.add-star-btn::after {
-    content: "⭐";
-}
-
-
-.signout-btn::after {
-    content: "➡️";
-}
-
-/* Auto-sync indicator: a quiet pill rather than a button-looking control,
-   since most of the time it only reports status. */
-.sync-status {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    background: rgba(255, 255, 255, 0.7);
-    color: var(--text-dark);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-    cursor: default;
-}
-
-.sync-status[aria-disabled="false"] {
-    cursor: pointer;
-}
-
-.sync-status--error,
-.sync-status--paused,
-.sync-status--setup {
-    background: var(--dark-gold-bg, #fff4e5);
-    border-color: #f59e0b;
-}
-
-.sync-status[aria-disabled="false"]:hover {
-    background: var(--dark-surface, #ffffff);
-}
-
-.sync-status--syncing .sync-status-icon {
-    display: inline-block;
-    animation: sync-status-spin 1.2s linear infinite;
-}
-
-@keyframes sync-status-spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .sync-status--syncing .sync-status-icon {
-        animation: none;
-    }
-}
-
-/* Laptop widths: the header holds more buttons than fit at full size (the
-   right 200px is kept clear for the home page's shuffle buttons), so tighten
-   them and show the sync indicator as an icon; its tooltip has the text.
-   Smaller widths switch layout further down. */
-@media (max-width: 1440px) {
-    .header-btn {
-        padding: 10px 14px;
-    }
-
-    .sync-status {
-        padding: 8px 10px;
-    }
-
-    .sync-status-label {
-        display: none;
-    }
-}
 
 /* Responsive design */
-@media (max-width: 1024px) {
-    .header {
-        flex-direction: column;
-        gap: 15px;
-        padding: 20px;
-    }
-    
-    .header-buttons {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-}
-
 @media (max-width: 640px) {
     .header-btn {
         padding: 8px 12px;
@@ -256,10 +171,11 @@
     }
 }
 
-/* Phones: keep the header a single compact row (~50px tall) and let the
-   buttons scroll horizontally instead of wrapping into a tall column that
-   would hide page content behind the fixed header. */
-@media (max-width: 768px) {
+/* Tablets and phones: keep the header a single compact row (~50px tall).
+   The page navigation scrolls sideways; search, theme and the menu stay
+   pinned on the right. (A stacked layout would hide the top of every page
+   behind the fixed header.) */
+@media (max-width: 1024px) {
     .header {
         flex-direction: row;
         gap: 8px;
@@ -279,6 +195,8 @@
     }
 
     .header-buttons {
+        flex: 1 1 auto;
+        min-width: 0;
         flex-wrap: nowrap;
         justify-content: flex-start;
         gap: 8px;
@@ -298,20 +216,15 @@
         font-size: 13px;
     }
 
-    /* Icon only on phones; the full status is in its tooltip / label. */
-    .sync-status {
-        padding: 8px 10px;
-    }
-
-    .sync-status-label {
-        display: none;
+    .header-actions {
+        gap: 8px;
+        padding-left: 8px;
     }
 }
 /* ====================================
    DARK MODE
    A dark bar instead of the gold one, keeping the gold buttons and making
-   the logo gold. The state rules below repeat .sync-status's tints because
-   this selector is more specific than theirs.
+   the logo gold.
    ==================================== */
 [data-theme='dark'] .header {
     background-color: #16181d;
@@ -323,15 +236,6 @@
     color: var(--gold-primary);
 }
 
-[data-theme='dark'] .sync-status {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.14);
-    color: var(--dark-text);
-}
-
-[data-theme='dark'] .sync-status--error,
-[data-theme='dark'] .sync-status--paused,
-[data-theme='dark'] .sync-status--setup {
-    background: rgba(245, 158, 11, 0.16);
-    border-color: #f59e0b;
+[data-theme='dark'] .header-actions {
+    border-left-color: rgba(255, 255, 255, 0.12);
 }

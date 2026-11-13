@@ -11,6 +11,7 @@ import * as tagService from '../../services/tagService';
 import { toStarKey, toDisplayName } from '../../utils/starName';
 import { shuffle } from '../../utils/arrayUtils';
 import { useRemoteRefresh } from '../../hooks/useRemoteRefresh';
+import { videoMatches } from '../../services/searchService';
 // The Data Base value is user-entered, so it is only rendered as a link once
 // confirmed to be http(s) — this keeps a pasted `javascript:` value inert.
 import { isHttpUrl } from '../../utils/url';
@@ -55,6 +56,19 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
   // back-button friendly.
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTag = searchParams.get('tag') || '';
+  // Text from the site-wide search's "See all videos" (?q=…).
+  const textQuery = searchParams.get('q') || '';
+
+  const clearTextQuery = useCallback(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('q');
+        return next;
+      },
+      { replace: true }
+    );
+  }, [setSearchParams]);
 
   // Uses the functional form so this callback does not depend on `searchParams`.
   // Depending on it would give the callback a new identity on every URL change,
@@ -143,6 +157,9 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
     if (selectedTag) {
       result = result.filter((favorite) => favorite.tags?.includes(selectedTag));
     }
+    if (textQuery) {
+      result = result.filter((favorite) => videoMatches(favorite, textQuery));
+    }
     if (selectedSort) {
       result = [...result].sort((a, b) => {
         const dateA = new Date(selectedSort === 'creation' ? a.creation : a.modification) || 0;
@@ -152,7 +169,7 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
     }
 
     return result;
-  }, [videos, isMainVideosTab, selectedStar, selectedTag, selectedSort, selectedOrder]);
+  }, [videos, isMainVideosTab, selectedStar, selectedTag, textQuery, selectedSort, selectedOrder]);
 
   // Render a page of cards at a time. Changing what is shown starts again
   // from the first page; edits, deletes and shuffles keep the current length.
@@ -163,7 +180,7 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
   } = usePaged(
     filteredFavorites,
     VIDEOS_PER_PAGE,
-    [starName, selectedStar, selectedTag, selectedSort, selectedOrder].join('|')
+    [starName, selectedStar, selectedTag, textQuery, selectedSort, selectedOrder].join('|')
   );
 
   /* ---------------------------------------------------------------- *
@@ -337,9 +354,20 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
             : {}
         }
       >
+        {textQuery && (
+          <div className="videos-text-filter">
+            <span>
+              Videos matching <strong>“{textQuery}”</strong> ({filteredFavorites.length.toLocaleString()})
+            </span>
+            <button type="button" onClick={clearTextQuery} aria-label="Clear search">✕</button>
+          </div>
+        )}
+
         {filteredFavorites.length === 0 ? (
           <p className="no-data">
-            {selectedStar
+            {textQuery
+              ? `No videos match "${textQuery}"`
+              : selectedStar
               ? `No videos found for "${selectedStar}"`
               : selectedTag
               ? `No videos found for category "${selectedTag}"`

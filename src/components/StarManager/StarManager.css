@@ -2,20 +2,59 @@
   padding-top: 55px; /* Add top padding to account for fixed header */
 }
 
-/* ── Floating shuffle/sort controls ──
-   Deliberately NOT part of Header.js: these are Home-page-only controls, and
-   the header's own layout already leaves a right-hand gap (its `padding-right:
-   200px`, unused by any header button) that they sit inside — so visually
-   they read as part of the header bar without being one of its nav buttons.
-   position: fixed + a z-index above the header's (1000) is what makes them
-   float on top of it rather than behind. */
-.star-shuffle-controls {
-  position: fixed;
-  top: 8px;
-  right: 16px;
-  z-index: 1001;
+/* ── Page toolbar: title, Add Star, shuffle and sort ── */
+.star-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 8px 10px;
+}
+
+.star-toolbar-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--dark-text-strong, #1e293b);
+}
+
+.star-toolbar-count {
+  margin-left: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  vertical-align: middle;
+  background: var(--dark-surface-strong, #f1f5f9);
+  color: var(--dark-text, #475569);
+}
+
+.star-toolbar-actions {
   display: flex;
   gap: 8px;
+}
+
+.star-add-btn {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.star-add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
 }
 
 .star-shuffle-btn {
@@ -45,32 +84,18 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Below this width the header switches to a taller, centered column layout
-   (~185px) and its reserved right-hand gap disappears — floating on top of it
-   would sit on empty space above the logo, not read as "on the header" at
-   all. Float just under it instead. */
-@media (max-width: 1024px) {
-  .star-shuffle-controls {
-    top: 192px;
-    right: 12px;
+@media (max-width: 600px) {
+  .star-toolbar-title {
+    font-size: 18px;
   }
-}
 
-/* Below this width the header goes back to a single compact row, but its nav
-   buttons now scroll horizontally edge-to-edge with no dead space — scrolled
-   to the end, a nav button (e.g. Sign Out) would sit directly under a
-   top-right overlay. Keep floating, but move it below the header instead of
-   on top of the nav row so it can never block a button the user is using. */
-@media (max-width: 768px) {
-  .star-shuffle-controls {
-    top: 58px;
-    right: 6px;
+  .star-add-btn,
+  .star-shuffle-btn {
+    height: 34px;
   }
 
   .star-shuffle-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
+    width: 34px;
   }
 }
 

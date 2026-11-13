@@ -47,7 +47,6 @@ const ScrollToTop = () => {
 
 const App = () => {
   const [accessToken, setAccessToken] = useState(() => authService.getAccessToken());
-  const [showAddStar, setShowAddStar] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [stars, setStars] = useState(() => starsService.getStars());
 
@@ -144,7 +143,6 @@ const App = () => {
       <ScrollToTop />
       <div>
         <Header
-          onAddStar={() => setShowAddStar(true)}
           onSignOut={handleSignOut}
           onSync={handleSync}
           onFetchData={handleFetchData}
@@ -158,8 +156,6 @@ const App = () => {
                 path="/"
                 element={
                   <StarManager
-                    showAddStarModal={showAddStar}
-                    closeAddStarModal={() => setShowAddStar(false)}
                     updateStarDetails={handleStarsUpdate}
                     stars={stars}
                   />

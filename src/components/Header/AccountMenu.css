@@ -1,0 +1,143 @@
+/* Neutral colours use var(--dark-<role>, <light colour>); see styles/theme.css. */
+
+/* ── The header button ── */
+.account-btn {
+  gap: 4px;
+}
+
+.account-btn-caret {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* Sync needs a look (failed, paused, or waiting for a first choice). */
+.account-btn.needs-attention {
+  box-shadow: 0 0 0 2px #f59e0b, 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.account-btn--syncing .account-btn-icon,
+.account-menu-status-icon.account-btn--syncing {
+  display: inline-block;
+  animation: account-sync-spin 1.2s linear infinite;
+}
+
+@keyframes account-sync-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-btn--syncing .account-btn-icon,
+  .account-menu-status-icon.account-btn--syncing {
+    animation: none;
+  }
+}
+
+/* ── The panel ── */
+.account-menu {
+  position: fixed;
+  top: 58px;
+  right: 8px;
+  z-index: 1050; /* above the header (1000), below the search panel */
+  width: 320px;
+  max-width: calc(100vw - 16px);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--dark-border, #e2e8f0);
+  background: var(--dark-surface, #ffffff);
+  color: var(--dark-text-strong, #1e293b);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+}
+
+.account-menu-status {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--dark-surface-muted, #f8fafc);
+}
+
+.account-menu-status.needs-attention {
+  background: var(--dark-gold-bg, #fff4e5);
+  box-shadow: inset 0 0 0 1px #f59e0b;
+}
+
+.account-menu-status-icon {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.account-menu-status-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.account-menu-status-detail {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--dark-text, #475569);
+}
+
+.account-menu-retry {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+  color: #1a1a1a;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.account-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus-visible {
+  background: var(--dark-surface-strong, #f1f5f9);
+  outline: none;
+}
+
+.account-menu-item-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+
+.account-menu-item-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-menu-item-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.account-menu-item-hint {
+  font-size: 12px;
+  color: var(--dark-text, #475569);
+}
+
+.account-menu-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--dark-border, #e2e8f0);
+}

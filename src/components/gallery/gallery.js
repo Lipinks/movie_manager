@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import './gallery.css';
 import { driveFetch, driveJson, DRIVE_API, UPLOAD_API } from '../../services/driveService';
 import { withAuth } from '../../services/authService';
+import { viewerUrl } from '../../utils/driveImage';
 
 const IMAGES_PER_PAGE = 20;
 
@@ -27,20 +28,6 @@ const listAllFiles = async ({ q, fields, orderBy }) => {
     pageToken = data.nextPageToken || null;
   } while (pageToken);
   return files;
-};
-
-/**
- * URL of a screen-sized rendition of an image, from Drive's thumbnail service.
- * A phone photo's original is often 3–8 MB; this is typically a few hundred
- * KB and looks the same on screen. The size is rounded to a few fixed steps so
- * the same picture always maps to the same URL, which the browser caches.
- * @returns the URL, or null when Drive gave no resizable thumbnail
- */
-const viewerUrl = (image) => {
-  if (!image?.thumbnailLink || !/=s\d+$/.test(image.thumbnailLink)) return null;
-  const longestSide = Math.max(window.innerWidth, window.innerHeight) * (window.devicePixelRatio || 1);
-  const size = [1024, 1600, 2048].find((step) => step >= longestSide) || 2048;
-  return image.thumbnailLink.replace(/=s\d+$/, `=s${size}`);
 };
 
 // Session-cache helpers for a folder's { folders, images } payload.

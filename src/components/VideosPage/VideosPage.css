@@ -809,6 +809,33 @@
 
 /* Edit Delete button style ends*/
 
+/* "Videos matching …" bar shown after the site search's "See all videos". */
+.videos-text-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 16px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(184, 134, 11, 0.45);
+  background: var(--dark-gold-bg, #fff8dc);
+  color: var(--dark-text-strong, #1e293b);
+  font-size: 14px;
+}
+
+.videos-text-filter button {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 /* The whole card opens the video (see openVideoFromCard). */
 .video-card {
   cursor: pointer;

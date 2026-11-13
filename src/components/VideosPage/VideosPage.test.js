@@ -105,6 +105,29 @@ describe('clicking a video card', () => {
   });
 });
 
+describe('"See all" from the site search (?q=)', () => {
+  const renderWithQuery = (query) =>
+    render(
+      <MemoryRouter initialEntries={[`/videos?q=${encodeURIComponent(query)}`]}>
+        <VideosPage starName="" />
+      </MemoryRouter>
+    );
+
+  it('shows only matching videos, and says what it is filtering by', () => {
+    // Every word must appear: "11" is in "Video 11" and "Video 110"–"Video 119".
+    const { container } = renderWithQuery('video 11');
+    expect(cardCount(container)).toBe(11);
+    expect(screen.getByText(/Videos matching/)).toHaveTextContent('Videos matching “video 11” (11)');
+  });
+
+  it('goes back to every video when the filter is cleared', () => {
+    const { container } = renderWithQuery('video 11');
+    fireEvent.click(screen.getByRole('button', { name: 'Clear search' }));
+    expect(cardCount(container)).toBe(50);
+    expect(screen.queryByText(/Videos matching/)).toBeNull();
+  });
+});
+
 it('starts again from the first 50 when the category filter changes', () => {
   const { container } = renderPage();
   fireEvent.click(screen.getByRole('button', { name: 'Show more (70 left)' }));

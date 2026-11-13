@@ -1,0 +1,207 @@
+/* Neutral colours use var(--dark-<role>, <light colour>); see styles/theme.css. */
+
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100; /* above the header and dialogs */
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 64px 12px 24px;
+}
+
+.search-panel {
+  width: min(680px, 100%);
+  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
+  background: var(--dark-surface, #ffffff);
+  color: var(--dark-text-strong, #1e293b);
+  border: 1px solid var(--dark-border, #e2e8f0);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--dark-border, #e2e8f0);
+}
+
+.search-input-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 17px;
+  padding: 6px 0;
+}
+
+.search-input::placeholder {
+  color: var(--dark-text-faint, #94a3b8);
+}
+
+.search-close {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--dark-border-strong, #cbd5e1);
+  background: var(--dark-surface-muted, #f8fafc);
+  color: var(--dark-text-muted, #64748b);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.search-results {
+  overflow-y: auto;
+  padding: 6px 0 10px;
+}
+
+.search-empty {
+  margin: 0;
+  padding: 18px 18px 14px;
+  color: var(--dark-text-muted, #64748b);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.search-group + .search-group {
+  margin-top: 6px;
+}
+
+.search-group-label {
+  padding: 10px 18px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--dark-text-muted, #64748b);
+}
+
+.search-group-count {
+  margin-left: 4px;
+  font-weight: 600;
+  color: var(--dark-text, #475569);
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 18px;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.search-row.is-active {
+  background: var(--dark-gold-bg, #fffbeb);
+  box-shadow: inset 3px 0 0 var(--gold-dark);
+}
+
+.search-row--more {
+  min-height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dark-gold-text, #7c5e0a);
+}
+
+.search-thumb {
+  width: 64px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--dark-surface-strong, #f1f5f9);
+}
+
+.search-thumb--round {
+  width: 36px;
+  border-radius: 50%;
+  margin: 0 14px;
+}
+
+.search-thumb--icon {
+  width: 36px;
+  margin: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  object-fit: contain;
+  padding: 6px;
+  font-size: 18px;
+}
+
+.search-row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.search-row-title,
+.search-row-sub {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.search-row-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark-text-strong, #1e293b);
+}
+
+.search-row-sub {
+  font-size: 12px;
+  color: var(--dark-text-muted, #64748b);
+}
+
+.search-footer {
+  display: flex;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--dark-border, #e2e8f0);
+  background: var(--dark-surface-muted, #f8fafc);
+  font-size: 12px;
+  color: var(--dark-text-muted, #64748b);
+}
+
+.search-footer kbd {
+  display: inline-block;
+  min-width: 18px;
+  margin-right: 3px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--dark-border-strong, #cbd5e1);
+  background: var(--dark-surface, #ffffff);
+  font: inherit;
+  font-size: 11px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .search-overlay {
+    padding: 8px;
+  }
+
+  .search-panel {
+    max-height: calc(100vh - 16px);
+  }
+
+  /* Keyboard hints don't apply on touch screens. */
+  .search-footer {
+    display: none;
+  }
+}
