@@ -85,7 +85,7 @@
 .edit-star-body .input-label {
   margin-bottom: 10px;
   font-weight: 600;
-  color: #334155;
+  color: var(--dark-text, #334155);
   font-size: 0.95rem;
 }
 
@@ -114,7 +114,7 @@
 
 .edit-star-body .input-wrapper.disabled,
 .edit-star-body .input-wrapper.disabled:hover {
-  background: #f1f5f9;
+  background: var(--dark-surface-strong, #f1f5f9);
   border-color: var(--border-subtle);
 }
 
@@ -124,13 +124,13 @@
   border: none;
   background: transparent;
   font-size: 1rem;
-  color: #334155;
+  color: var(--dark-text, #334155);
   outline: none;
   box-sizing: border-box;
 }
 
 .edit-star-body input::placeholder {
-  color: #94a3b8;
+  color: var(--dark-text-faint, #94a3b8);
   font-style: italic;
 }
 
@@ -145,7 +145,7 @@
   left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  color: #94a3b8;
+  color: var(--dark-text-faint, #94a3b8);
   pointer-events: none;
 }
 
@@ -208,9 +208,9 @@
 }
 
 .edit-star-footer .cancel-btn:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #475569;
+  background: var(--dark-surface-strong, #f1f5f9);
+  border-color: var(--dark-border-strong, #cbd5e1);
+  color: var(--dark-text, #475569);
 }
 
 /* -- Mobile ---------------------------- */

@@ -53,7 +53,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #fff9e6 0%, var(--cream-bg) 100%);
+  background: linear-gradient(135deg, var(--dark-gold-bg, #fff9e6) 0%, var(--cream-bg) 100%);
   color: var(--gold-dark);
   font-size: 48px;
   font-weight: 700;

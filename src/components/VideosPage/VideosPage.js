@@ -327,7 +327,8 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
         style={
           !isMainVideosTab
             ? {
-                backgroundImage: `linear-gradient(rgba(255,255,255,0.2), rgba(255,255,255,0.2)), url(${starImage})`,
+                // A light wash over the photo; dark mode swaps in a dark one.
+                backgroundImage: `linear-gradient(var(--dark-image-wash, rgba(255,255,255,0.2)), var(--dark-image-wash, rgba(255,255,255,0.2))), url(${starImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',

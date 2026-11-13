@@ -5,11 +5,12 @@ const containerStyle = {
   margin: '80px auto',
   padding: '32px 28px',
   borderRadius: 16,
-  background: '#fff',
-  border: '1px solid #e2e8f0',
+  // Neutral colours follow the dark theme (see styles/theme.css).
+  background: 'var(--dark-surface, #fff)',
+  border: '1px solid var(--dark-border, #e2e8f0)',
   boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
   fontFamily: 'system-ui, -apple-system, Segoe UI, sans-serif',
-  color: '#1e293b',
+  color: 'var(--dark-text-strong, #1e293b)',
   textAlign: 'center',
 };
 
@@ -52,7 +53,7 @@ class ErrorBoundary extends React.Component {
     return (
       <div style={containerStyle} role="alert">
         <h2 style={{ margin: '0 0 10px' }}>Something went wrong</h2>
-        <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
+        <p style={{ margin: 0, color: 'var(--dark-text-muted, #64748b)', fontSize: 14 }}>
           {error.message || 'An unexpected error occurred while rendering this page.'}
         </p>
         <button type="button" style={buttonStyle} onClick={() => this.setState({ error: null })}>

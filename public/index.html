@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Heaven's Door</title>
+    <script>
+      // Apply a saved dark theme before anything paints, so the page never
+      // flashes light first (see src/services/themeService.js).
+      try {
+        if (localStorage.getItem('theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+      } catch (e) {}
+    </script>
     <link rel="icon" type="image/webp" href="%PUBLIC_URL%/favicon.webp" />
 
     <!-- Open connections early to the servers every visit talks to. -->

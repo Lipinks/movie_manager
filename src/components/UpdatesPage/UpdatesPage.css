@@ -15,7 +15,7 @@
   text-align: center;
   font-size: 32px;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--dark-text-strong, #2d3748);
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -38,7 +38,7 @@
   flex: 1 1 220px;
   min-width: 0;
   padding: 10px 14px;
-  border: 1.5px solid #e8e0c5;
+  border: 1.5px solid var(--dark-border, #e8e0c5);
   border-radius: 8px;
   font-size: 14px;
   font-family: 'Inter', sans-serif;
@@ -54,7 +54,7 @@
 }
 
 .updates-input::placeholder {
-  color: #a0a0a0;
+  color: var(--dark-text-faint, #a0a0a0);
   font-size: 13px;
 }
 
@@ -64,20 +64,20 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
+  background: var(--dark-surface-muted, #f3f4f6);
+  border: 1px solid var(--dark-border-strong, #d1d5db);
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--dark-text, #374151);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
 
 .updates-vpn-toggle:hover {
-  background: #e5e7eb;
-  border-color: #9ca3af;
+  background: var(--dark-surface-strong, #e5e7eb);
+  border-color: var(--dark-border-stronger, #9ca3af);
 }
 
 .updates-vpn-toggle input[type="checkbox"] {
@@ -88,7 +88,7 @@
 }
 
 .updates-vpn-toggle:has(input:checked) {
-  background: #fef2f2;
+  background: var(--dark-danger-bg, #fef2f2);
   border-color: #ef4444;
   color: var(--danger);
   font-weight: 600;
@@ -239,15 +239,15 @@
 }
 
 .update-vpn-badge.required {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--dark-danger-bg, #fef2f2);
+  border: 1px solid var(--dark-danger-border, #fecaca);
   color: var(--danger);
 }
 
 .update-vpn-badge.not-required {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
+  background: var(--dark-success-bg, #f0fdf4);
+  border: 1px solid var(--dark-success-border, #bbf7d0);
+  color: var(--dark-success-text, #15803d);
 }
 
 .update-card-remove {
@@ -260,7 +260,7 @@
   border: none;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.05);
-  color: #64748b;
+  color: var(--dark-text-muted, #64748b);
   font-size: 16px;
   line-height: 1;
   cursor: pointer;

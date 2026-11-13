@@ -2,7 +2,7 @@
 .star-details {
   padding-top: 50px; /* Add top padding to account for fixed header */
   margin: 0 auto;
-  background: #ffffff;
+  background: var(--dark-surface, #ffffff);
   min-height: calc(100vh - 60px);
 }
 
@@ -11,7 +11,7 @@
   grid-template-columns: 400px 1fr;
   gap: 40px;
   padding: 30px;
-  background: #ffffff;
+  background: var(--dark-surface, #ffffff);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
@@ -41,7 +41,7 @@
 .star-info-detailed h1 {
   font-size: 36px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--dark-text-strong, #1a1a1a);
   margin-bottom: 24px;
   letter-spacing: -0.5px;
 }
@@ -49,7 +49,7 @@
 .star-info-detailed p {
   font-size: 18px;
   line-height: 1.6;
-  color: #4b5563;
+  color: var(--dark-text, #4b5563);
   margin-bottom: 16px;
 }
 

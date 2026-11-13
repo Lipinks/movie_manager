@@ -30,7 +30,7 @@
   border: none;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.06);
-  color: #444;
+  color: var(--dark-text, #444);
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
@@ -39,14 +39,14 @@
 
 .category-dialog-close:hover {
   background: rgba(0, 0, 0, 0.12);
-  color: #000;
+  color: var(--dark-text-strong, #000);
 }
 
 .category-dialog-section {
   margin: 18px 0 10px;
   font-size: 14px;
   font-weight: 700;
-  color: #334155;
+  color: var(--dark-text, #334155);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -54,7 +54,7 @@
 .category-dialog-empty {
   margin: 0;
   padding: 18px;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--dark-border-strong, #cbd5e1);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.6);
   color: var(--text-muted);
@@ -73,7 +73,7 @@
   font-weight: 600;
   color: var(--text-strong);
   text-align: center;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--dark-border, #f1f5f9);
   background: var(--surface);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -91,7 +91,7 @@
 }
 
 .cover-btn:hover:not(:disabled) {
-  background: #fff;
+  background: var(--dark-surface, #fff);
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(218, 165, 32, 0.45);
 }
@@ -189,7 +189,7 @@
   border: 1.5px dashed var(--gold-dark);
   border-radius: 10px;
   background: rgba(255, 215, 0, 0.08);
-  color: #7a5a0b;
+  color: var(--dark-gold-text, #7a5a0b);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -204,9 +204,9 @@
 .category-dialog-delete-btn {
   flex: 0 0 auto;
   padding: 10px 22px;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--dark-danger-border, #fecaca);
   border-radius: 8px;
-  background: #fef2f2;
+  background: var(--dark-danger-bg, #fef2f2);
   color: var(--danger);
   font-size: 14px;
   font-weight: 600;

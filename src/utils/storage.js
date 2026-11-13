@@ -143,4 +143,6 @@ export const KEYS = {
   SYNC_PENDING: 'syncPending',
   /** { [fileName]: { id, modifiedTime } } of each Drive file as last downloaded or uploaded here. */
   DRIVE_VERSIONS: 'driveFileVersions',
+  /** Raw 'dark' or 'light'. Per browser, not synced; public/index.html reads it too. */
+  THEME: 'theme',
 };

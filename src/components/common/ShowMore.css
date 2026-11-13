@@ -8,8 +8,8 @@
   padding: 10px 22px;
   border-radius: 999px;
   border: 1px solid rgba(184, 134, 11, 0.45);
-  background: #ffffff;
-  color: #7c5e0a;
+  background: var(--dark-surface, #ffffff);
+  color: var(--dark-gold-text, #7c5e0a);
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -19,7 +19,7 @@
 }
 
 .show-more-btn:hover {
-  background: #fff8dc;
+  background: var(--dark-gold-bg, #fff8dc);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 

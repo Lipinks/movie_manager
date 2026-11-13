@@ -7,7 +7,7 @@
 .tag-editor-label {
   font-size: 13px;
   font-weight: 600;
-  color: #555;
+  color: var(--dark-text, #555);
   margin-top: 6px;
 }
 
@@ -21,7 +21,7 @@
 
 .tag-editor-empty {
   font-size: 12px;
-  color: #999;
+  color: var(--dark-text-faint, #999);
   font-style: italic;
 }
 
@@ -47,8 +47,8 @@
 }
 
 .tag-editor-tag.available {
-  background: #eee;
-  color: #333;
+  background: var(--dark-surface-strong, #eee);
+  color: var(--dark-text-strong, #333);
 }
 
 .tag-editor-icon {
@@ -64,7 +64,7 @@
 .tag-editor-input {
   flex: 1;
   padding: 8px 10px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--dark-border-strong, #ccc);
   border-radius: 6px;
   font-size: 14px;
 }

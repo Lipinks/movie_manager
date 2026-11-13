@@ -18,7 +18,7 @@
     width: 100%;
     z-index: 1000;
     background-color: #FFD700; /* Golden background */
-    color: #000; /* Black text for contrast */
+    color: var(--dark-text-strong, #000); /* Black text for contrast */
     padding: 5px 5px;
     padding-right: 200px;
     display: flex;
@@ -188,12 +188,12 @@
 .sync-status--error,
 .sync-status--paused,
 .sync-status--setup {
-    background: #fff4e5;
+    background: var(--dark-gold-bg, #fff4e5);
     border-color: #f59e0b;
 }
 
 .sync-status[aria-disabled="false"]:hover {
-    background: #ffffff;
+    background: var(--dark-surface, #ffffff);
 }
 
 .sync-status--syncing .sync-status-icon {
@@ -210,6 +210,24 @@
 @media (prefers-reduced-motion: reduce) {
     .sync-status--syncing .sync-status-icon {
         animation: none;
+    }
+}
+
+/* Laptop widths: the header holds more buttons than fit at full size (the
+   right 200px is kept clear for the home page's shuffle buttons), so tighten
+   them and show the sync indicator as an icon; its tooltip has the text.
+   Smaller widths switch layout further down. */
+@media (max-width: 1440px) {
+    .header-btn {
+        padding: 10px 14px;
+    }
+
+    .sync-status {
+        padding: 8px 10px;
+    }
+
+    .sync-status-label {
+        display: none;
     }
 }
 
@@ -288,4 +306,32 @@
     .sync-status-label {
         display: none;
     }
+}
+/* ====================================
+   DARK MODE
+   A dark bar instead of the gold one, keeping the gold buttons and making
+   the logo gold. The state rules below repeat .sync-status's tints because
+   this selector is more specific than theirs.
+   ==================================== */
+[data-theme='dark'] .header {
+    background-color: #16181d;
+    border-color: rgba(255, 215, 0, 0.18);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .logo {
+    color: var(--gold-primary);
+}
+
+[data-theme='dark'] .sync-status {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: var(--dark-text);
+}
+
+[data-theme='dark'] .sync-status--error,
+[data-theme='dark'] .sync-status--paused,
+[data-theme='dark'] .sync-status--setup {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: #f59e0b;
 }

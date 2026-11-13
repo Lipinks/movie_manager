@@ -82,7 +82,7 @@
   }
 
   .star-frame {
-    border: 1px solid #ddd;
+    border: 1px solid var(--dark-border-strong, #ddd);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -125,7 +125,7 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
-    background-color: #f5f5f5;
+    background-color: var(--dark-surface-muted, #f5f5f5);
   }
 
   .star-info {
@@ -135,12 +135,12 @@
 
   .star-info h3 {
     margin: 0 0 4px;
-    color: #333;
+    color: var(--dark-text-strong, #333);
   }
 
   .star-info p {
     margin: 0;
-    color: #666;
+    color: var(--dark-text-muted, #666);
     font-size: 14px;
   }
 

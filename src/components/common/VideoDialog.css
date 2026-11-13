@@ -28,7 +28,7 @@
   flex-shrink: 0;
   font-weight: 600;
   font-size: 14px;
-  color: #334155;
+  color: var(--dark-text, #334155);
 }
 
 @media (max-width: 600px) {

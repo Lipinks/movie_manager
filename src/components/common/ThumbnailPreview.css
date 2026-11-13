@@ -18,7 +18,7 @@
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #4b5563;
+  color: var(--dark-text, #4b5563);
 }
 
 .thumbnail-preview-frame {
@@ -26,8 +26,8 @@
   aspect-ratio: 16 / 9;
   border-radius: 8px;
   overflow: hidden;
-  background: #f3f4f6;
-  border: 1px dashed #cbd5e1;
+  background: var(--dark-surface-muted, #f3f4f6);
+  border: 1px dashed var(--dark-border-strong, #cbd5e1);
 }
 
 .thumbnail-preview-image {
@@ -46,6 +46,6 @@
   justify-content: center;
   text-align: center;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--dark-text-muted, #6b7280);
   box-sizing: border-box;
 }

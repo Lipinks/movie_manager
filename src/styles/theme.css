@@ -35,3 +35,62 @@
   --z-modal: 1000;
   --z-modal-floating: 1001;
 }
+
+/* ====================================
+   DARK MODE
+   Switched on by <html data-theme="dark"> (see services/themeService.js).
+
+   Component styles write neutral colours as
+       background: var(--dark-surface, #ffffff);
+   The --dark-* variables below exist only in dark mode, so light mode always
+   uses the original colour after the comma and is unchanged. When adding a
+   neutral colour to a stylesheet, wrap it the same way with the matching
+   role, or it will stay light in dark mode.
+   ==================================== */
+[data-theme='dark'] {
+  /* Native controls, scrollbars and form fields render dark too. */
+  color-scheme: dark;
+
+  --dark-page: #111318;
+  --dark-surface: #1b1e24;
+  --dark-surface-muted: #20242b;
+  --dark-surface-strong: #2a2f37;
+  --dark-surface-stronger: #3a404b;
+
+  --dark-border: #2e333b;
+  --dark-border-strong: #3d434e;
+  --dark-border-stronger: #565d6a;
+
+  --dark-text-strong: #eceef1;
+  --dark-text: #cdd2d9;
+  --dark-text-muted: #a3abb7;
+  --dark-text-faint: #7f8794;
+
+  /* Tinted backgrounds are solid (each is the tint mixed over --dark-surface),
+     because some fill dialogs and overlays that must not be see-through. */
+  --dark-accent-bg: #292f48;
+  --dark-accent-text: #a5b4fc;
+  --dark-danger-bg: #3a2329;
+  --dark-danger-border: rgba(239, 68, 68, 0.4);
+  --dark-success-bg: #1c352c;
+  --dark-success-border: rgba(34, 197, 94, 0.4);
+  --dark-success-text: #4ade80;
+  --dark-gold-bg: #2d2b1f;
+  --dark-gold-text: #e6c158;
+
+  /* Wash laid over a star's photo behind their videos (VideosPage.js). */
+  --dark-image-wash: rgba(0, 0, 0, 0.45);
+
+  /* The shared tokens above, for components that use them directly. */
+  --surface: var(--dark-surface);
+  --surface-muted: var(--dark-surface-muted);
+  --border-subtle: var(--dark-border);
+  --text-strong: var(--dark-text-strong);
+  --text-muted: var(--dark-text-muted);
+  --cream-bg: var(--dark-surface-muted);
+}
+
+[data-theme='dark'] body {
+  background: var(--dark-page);
+  color: var(--dark-text);
+}

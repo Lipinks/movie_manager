@@ -41,3 +41,11 @@
   transform: scale(1.07);
   box-shadow: 0 8px 24px rgba(191, 161, 74, 0.18);
 }
+/* Dark mode: a dark backdrop with the same warm glow behind the title. */
+[data-theme='dark'] .home-container {
+  background: radial-gradient(circle at 50% 30%, #2b2414 0%, #111318 100%);
+}
+
+[data-theme='dark'] .home-container h1 {
+  text-shadow: 0 2px 14px rgba(255, 215, 0, 0.35);
+}

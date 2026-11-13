@@ -55,7 +55,7 @@
 }
 
 .loading-text span {
-  color: #333;
+  color: var(--dark-text-strong, #333);
   font-size: 2rem;
   font-weight: 700;
   animation: bounce 1.2s ease-in-out infinite both;
@@ -70,7 +70,7 @@
 .loading-text span:nth-child(7) { animation-delay: 0.7s; color: #667eea; }
 
 .loading-subtitle {
-  color: #666;
+  color: var(--dark-text-muted, #666);
   font-size: 1rem;
   font-weight: 400;
   animation: fade-in-out 2s ease-in-out infinite;
@@ -125,7 +125,7 @@
 
 /* Optional: Add a subtle background */
 .loading-container.with-background {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, var(--dark-surface-muted, #f5f7fa) 0%, var(--dark-surface-strong, #c3cfe2) 100%);
   border-radius: 12px;
   margin: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
