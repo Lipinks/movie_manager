@@ -7,7 +7,8 @@ import * as driveSyncService from './driveSyncService';
  *
  *  - Local edits are uploaded a few seconds after the last change, and at
  *    once when the tab is hidden, so switching away or closing the tab does
- *    not leave them behind.
+ *    not leave them behind. Only the files that changed are uploaded,
+ *    usually in a single request straight to the remembered Drive file.
  *  - Drive is checked when the app opens and whenever the tab is shown again.
  *    Only files another device changed are downloaded (compared by Drive's
  *    `modifiedTime`), so a check with nothing new costs a single request.
@@ -42,8 +43,10 @@ let unsubscribeStorage = null;
 
 let pushTimer = null;
 let retryAttempt = 0;
-/** Bumped on every local edit, to tell whether one happened during a sync. */
+/** Bumped on every local edit, to tell whether one happened during a download. */
 let localRevision = 0;
+/** Per-key edit counters, to tell whether a key was edited again mid-upload. */
+const keyRevisions = new Map();
 let lastPullAt = 0;
 let lastSyncedAt = null;
 
@@ -74,12 +77,31 @@ const enqueue = (task) => {
 let status = { state: 'off', lastSyncedAt: null, message: null };
 const statusListeners = new Set();
 
-const isDirty = () => storage.getRaw(storage.KEYS.SYNC_PENDING) === '1';
+/**
+ * The synced keys edited here but not uploaded yet. Kept in localStorage so
+ * they survive a reload, and so an upload sends only the files that changed.
+ */
+const readPending = () => {
+  const raw = storage.getRaw(storage.KEYS.SYNC_PENDING);
+  if (!raw) return new Set();
+  try {
+    const keys = JSON.parse(raw);
+    if (Array.isArray(keys)) return new Set(keys.filter((key) => driveSyncService.SYNCED_KEYS.includes(key)));
+  } catch {
+    // Unreadable: fall through and upload everything to be safe.
+  }
+  // Also covers the earlier '1' flag, which didn't say which keys changed.
+  return new Set(driveSyncService.SYNCED_KEYS);
+};
 
-const setDirty = (dirty) => {
-  if (dirty) storage.setRaw(storage.KEYS.SYNC_PENDING, '1');
+const writePending = (keys) => {
+  if (keys.size) storage.setRaw(storage.KEYS.SYNC_PENDING, JSON.stringify([...keys]));
   else storage.removeItem(storage.KEYS.SYNC_PENDING);
 };
+
+const clearPending = () => writePending(new Set());
+
+const isDirty = () => readPending().size > 0;
 
 const computeState = () => {
   if (!running) return 'off';
@@ -194,31 +216,41 @@ const succeeded = () => {
   lastSyncedAt = Date.now();
 };
 
-/** Upload local data. Background calls only upload when there are pending edits. */
+/**
+ * Upload local data. Background calls upload only the documents with pending
+ * edits; the Sync button (userInitiated) uploads everything.
+ */
 const push = async ({ userInitiated = false } = {}) => {
   if (!running) return;
   clearPushTimer();
 
+  const pending = readPending();
   if (!userInitiated) {
     if (needsChoice) return;
     // Never synced from this browser: the first-sync check decides what's safe.
     if (!driveSyncService.hasBaseline()) return pull();
-    if (!isDirty()) return;
+    if (!pending.size) return;
   }
   if (!(await ensureToken(userInitiated))) {
     refreshStatus();
     return;
   }
 
-  const revision = localRevision;
+  // Note each key's edit count now, to tell afterwards which were edited again.
+  const uploading = new Map([...pending].map((key) => [key, keyRevisions.get(key) || 0]));
   inFlight = true;
   refreshStatus();
   try {
-    await driveSyncService.syncToDrive();
+    await driveSyncService.syncToDrive(userInitiated ? {} : { keys: [...pending] });
     succeeded();
     needsChoice = false;
-    if (localRevision === revision) setDirty(false);
-    else schedulePush(config.pushDelayMs); // edited during the upload
+
+    const stillPending = readPending();
+    uploading.forEach((revision, key) => {
+      if ((keyRevisions.get(key) || 0) === revision) stillPending.delete(key);
+    });
+    writePending(stillPending);
+    if (stillPending.size) schedulePush(config.pushDelayMs); // edited during the upload
   } catch (error) {
     lastError = error;
     scheduleRetry();
@@ -271,7 +303,7 @@ const pull = async ({ userInitiated = false, force = false } = {}) => {
         return null;
       }
       driveSyncService.markBaseline(entries);
-      setDirty(false);
+      clearPending();
       succeeded();
       lastPullAt = Date.now();
       return null;
@@ -281,7 +313,7 @@ const pull = async ({ userInitiated = false, force = false } = {}) => {
     if (force) {
       // Local data now mirrors Drive, so nothing is left to upload.
       clearPushTimer();
-      setDirty(false);
+      clearPending();
       needsChoice = false;
     }
 
@@ -309,7 +341,10 @@ const pull = async ({ userInitiated = false, force = false } = {}) => {
 const handleStorageChange = (key, { fromRemote }) => {
   if (fromRemote || !driveSyncService.SYNCED_KEYS.includes(key)) return;
   localRevision += 1;
-  setDirty(true);
+  keyRevisions.set(key, (keyRevisions.get(key) || 0) + 1);
+  const pending = readPending();
+  pending.add(key);
+  writePending(pending);
   schedulePush(config.pushDelayMs);
   refreshStatus();
 };

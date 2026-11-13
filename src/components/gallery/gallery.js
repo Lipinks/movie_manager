@@ -11,6 +11,38 @@ const IMAGES_PER_PAGE = 20;
 const authedDriveJson = (url, options) => withAuth((token) => driveJson(url, { ...options, token }));
 const authedDriveFetch = (url, options) => withAuth((token) => driveFetch(url, { ...options, token }));
 
+/**
+ * Every file matching a Drive query, following nextPageToken. A single
+ * request returns at most 1,000 files (folders defaulted to just 100), so a
+ * bigger folder used to be silently cut off.
+ */
+const listAllFiles = async ({ q, fields, orderBy }) => {
+  const files = [];
+  let pageToken = null;
+  do {
+    const params = new URLSearchParams({ q, fields: `nextPageToken,files(${fields})`, orderBy, pageSize: '1000' });
+    if (pageToken) params.set('pageToken', pageToken);
+    const data = await authedDriveJson(`${DRIVE_API}/files?${params}`);
+    files.push(...(data.files || []));
+    pageToken = data.nextPageToken || null;
+  } while (pageToken);
+  return files;
+};
+
+/**
+ * URL of a screen-sized rendition of an image, from Drive's thumbnail service.
+ * A phone photo's original is often 3–8 MB; this is typically a few hundred
+ * KB and looks the same on screen. The size is rounded to a few fixed steps so
+ * the same picture always maps to the same URL, which the browser caches.
+ * @returns the URL, or null when Drive gave no resizable thumbnail
+ */
+const viewerUrl = (image) => {
+  if (!image?.thumbnailLink || !/=s\d+$/.test(image.thumbnailLink)) return null;
+  const longestSide = Math.max(window.innerWidth, window.innerHeight) * (window.devicePixelRatio || 1);
+  const size = [1024, 1600, 2048].find((step) => step >= longestSide) || 2048;
+  return image.thumbnailLink.replace(/=s\d+$/, `=s${size}`);
+};
+
 // Session-cache helpers for a folder's { folders, images } payload.
 const folderCacheKey = (id) => `galleryFolder_${id}`;
 const readFolderCache = (id) => {
@@ -67,6 +99,75 @@ const AuthedImage = ({ image, alt, loading }) => {
   return <img src={src} alt={alt} loading={loading} onError={handleError} />;
 };
 
+/**
+ * The picture in the full-screen viewer: the screen-sized rendition when
+ * there is one, otherwise the original file (downloaded with the access
+ * token, shown via a blob URL). Downloaded originals are kept in `originals`
+ * so stepping back to a picture doesn't download it again; the Gallery
+ * revokes them when it unmounts.
+ */
+const ViewerImage = ({ image, originals }) => {
+  const sizedUrl = viewerUrl(image);
+  const [src, setSrc] = useState(() => sizedUrl || originals.get(image.id) || null);
+  const [loaded, setLoaded] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const loadOriginal = useCallback(async () => {
+    const cached = originals.get(image.id);
+    if (cached) {
+      setSrc(cached);
+      return;
+    }
+    try {
+      const response = await authedDriveFetch(`${DRIVE_API}/files/${image.id}?alt=media`);
+      const url = URL.createObjectURL(await response.blob());
+      originals.set(image.id, url);
+      setSrc(url);
+    } catch (err) {
+      console.error('Error loading full image:', err);
+      setFailed(true);
+    }
+  }, [image.id, originals]);
+
+  useEffect(() => {
+    if (!src) loadOriginal();
+  }, [src, loadOriginal]);
+
+  const handleError = () => {
+    // The rendition failed: clearing src makes the effect fetch the original.
+    if (src === sizedUrl) setSrc(null);
+    else setFailed(true);
+  };
+
+  if (failed) {
+    return (
+      <div className="modal-loading">
+        <p>Failed to load image.</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {!loaded && (
+        <div className="modal-loading">
+          <div className="loading-spinner"></div>
+          <p>Loading image...</p>
+        </div>
+      )}
+      {src && (
+        <img
+          src={src}
+          alt={image.name}
+          onLoad={() => setLoaded(true)}
+          onError={handleError}
+          style={loaded ? undefined : { display: 'none' }}
+        />
+      )}
+    </>
+  );
+};
+
 const Gallery = () => {
   const [images, setImages] = useState([]);
   const [subFolders, setSubFolders] = useState([]);
@@ -75,15 +176,22 @@ const Gallery = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(IMAGES_PER_PAGE);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(-1);
-  const [fullImageUrl, setFullImageUrl] = useState(null);
-  const [fullImageError, setFullImageError] = useState(false);
-  const [loadingFullImage, setLoadingFullImage] = useState(false);
+  /** Index (into the visible images) of the picture open in the viewer, or -1. */
+  const [viewerIndex, setViewerIndex] = useState(-1);
   const [error, setError] = useState(null);
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
+  /** image id -> blob URL of originals downloaded for the viewer. */
+  const originalsRef = useRef(new Map());
+
+  useEffect(() => {
+    const originals = originalsRef.current;
+    return () => {
+      originals.forEach((url) => URL.revokeObjectURL(url));
+      originals.clear();
+    };
+  }, []);
 
   // Clean up stale localStorage keys from old implementation
   useEffect(() => {
@@ -126,17 +234,18 @@ const Gallery = () => {
     setError(null);
 
     try {
-      const [foldersData, imagesData] = await Promise.all([
-        authedDriveJson(
-          `${DRIVE_API}/files?q='${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false&fields=files(id,name)&orderBy=name`
-        ),
-        authedDriveJson(
-          `${DRIVE_API}/files?q='${folderId}' in parents and (mimeType contains 'image/') and trashed=false&fields=files(id,name,mimeType,thumbnailLink,createdTime)&orderBy=createdTime desc&pageSize=1000`
-        ),
+      const [fetchedFolders, fetchedImages] = await Promise.all([
+        listAllFiles({
+          q: `'${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+          fields: 'id,name',
+          orderBy: 'name',
+        }),
+        listAllFiles({
+          q: `'${folderId}' in parents and (mimeType contains 'image/') and trashed=false`,
+          fields: 'id,name,mimeType,thumbnailLink,createdTime',
+          orderBy: 'createdTime desc',
+        }),
       ]);
-
-      const fetchedFolders = foldersData.files || [];
-      const fetchedImages = imagesData.files || [];
 
       setSubFolders(fetchedFolders);
       setImages(fetchedImages);
@@ -242,8 +351,12 @@ const Gallery = () => {
         }
         return updated;
       });
-      setSelectedImage(null);
-      setCurrentImageIndex(-1);
+      const original = originalsRef.current.get(imageId);
+      if (original) {
+        URL.revokeObjectURL(original);
+        originalsRef.current.delete(imageId);
+      }
+      setViewerIndex(-1);
     } catch (err) {
       console.error('Error deleting image:', err);
       alert('Failed to delete image. Please try again.');
@@ -253,34 +366,19 @@ const Gallery = () => {
   const currentImages = useMemo(() => images.slice(0, visibleCount), [images, visibleCount]);
   const hasMoreImages = visibleCount < images.length;
 
-  // Fetch full-size image using Bearer token → blob URL (reliable, no cookie needed)
-  const fetchFullImage = useCallback(async (image, index) => {
-    setLoadingFullImage(true);
-    setSelectedImage(image);
-    setCurrentImageIndex(index);
-    setFullImageUrl(null);
-    setFullImageError(false);
+  const selectedImage = viewerIndex >= 0 ? currentImages[viewerIndex] ?? null : null;
 
-    try {
-      const response = await authedDriveFetch(`${DRIVE_API}/files/${image.id}?alt=media`);
-      const blob = await response.blob();
-      setFullImageUrl(URL.createObjectURL(blob));
-    } catch (err) {
-      console.error('Error loading full image:', err);
-      setFullImageError(true);
-    } finally {
-      setLoadingFullImage(false);
-    }
-  }, []);
+  const closeModal = useCallback(() => setViewerIndex(-1), []);
 
-  const closeModal = useCallback(() => {
-    if (fullImageUrl && fullImageUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(fullImageUrl);
-    }
-    setSelectedImage(null);
-    setFullImageUrl(null);
-    setCurrentImageIndex(-1);
-  }, [fullImageUrl]);
+  // Warm the browser cache with the neighbouring pictures, so stepping to the
+  // next or previous one shows it straight away.
+  useEffect(() => {
+    if (viewerIndex < 0) return;
+    [viewerIndex - 1, viewerIndex + 1].forEach((index) => {
+      const url = viewerUrl(currentImages[index]);
+      if (url) new Image().src = url;
+    });
+  }, [viewerIndex, currentImages]);
 
   const navigateToFolder = (folder) => {
     setFolderPath(prev => [...prev, { id: folder.id, name: folder.name }]);
@@ -310,20 +408,12 @@ const Gallery = () => {
   };
 
   const goToPreviousImage = useCallback(() => {
-    if (currentImageIndex > 0) {
-      const prevIndex = currentImageIndex - 1;
-      if (fullImageUrl && fullImageUrl.startsWith('blob:')) URL.revokeObjectURL(fullImageUrl);
-      fetchFullImage(currentImages[prevIndex], prevIndex);
-    }
-  }, [currentImageIndex, fullImageUrl, currentImages, fetchFullImage]);
+    setViewerIndex((index) => (index > 0 ? index - 1 : index));
+  }, []);
 
   const goToNextImage = useCallback(() => {
-    if (currentImageIndex < currentImages.length - 1) {
-      const nextIndex = currentImageIndex + 1;
-      if (fullImageUrl && fullImageUrl.startsWith('blob:')) URL.revokeObjectURL(fullImageUrl);
-      fetchFullImage(currentImages[nextIndex], nextIndex);
-    }
-  }, [currentImageIndex, fullImageUrl, currentImages, fetchFullImage]);
+    setViewerIndex((index) => (index >= 0 && index < currentImages.length - 1 ? index + 1 : index));
+  }, [currentImages.length]);
 
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchMove = (e) => { touchEndX.current = e.touches[0].clientX; };
@@ -433,7 +523,7 @@ const Gallery = () => {
                 <div
                   key={image.id}
                   className="gallery-item"
-                  onClick={() => fetchFullImage(image, index)}
+                  onClick={() => setViewerIndex(index)}
                 >
                   <AuthedImage image={image} alt={image.name} loading="lazy" />
                   <div className="gallery-item-overlay">
@@ -487,33 +577,22 @@ const Gallery = () => {
           <div className="gallery-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={closeModal}>×</button>
 
-            {currentImageIndex > 0 && (
+            {viewerIndex > 0 && (
               <button className="modal-nav modal-nav-prev" onClick={(e) => { e.stopPropagation(); goToPreviousImage(); }}>
                 ‹
               </button>
             )}
-            {currentImageIndex < currentImages.length - 1 && (
+            {viewerIndex < currentImages.length - 1 && (
               <button className="modal-nav modal-nav-next" onClick={(e) => { e.stopPropagation(); goToNextImage(); }}>
                 ›
               </button>
             )}
 
-            {loadingFullImage ? (
-              <div className="modal-loading">
-                <div className="loading-spinner"></div>
-                <p>Loading image...</p>
-              </div>
-            ) : fullImageError ? (
-              <div className="modal-loading">
-                <p>Failed to load image.</p>
-              </div>
-            ) : (
-              <img src={fullImageUrl} alt={selectedImage.name} />
-            )}
+            <ViewerImage key={selectedImage.id} image={selectedImage} originals={originalsRef.current} />
 
             <div className="modal-info">
               <span className="modal-name">{selectedImage.name}</span>
-              <span className="modal-counter">{currentImageIndex + 1} / {currentImages.length}</span>
+              <span className="modal-counter">{viewerIndex + 1} / {currentImages.length}</span>
               <button
                 className="modal-delete-btn"
                 onClick={() => handleDelete(selectedImage.id, selectedImage.name)}

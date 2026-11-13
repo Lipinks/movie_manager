@@ -45,7 +45,7 @@ const VideoCard = memo(({ url, index, onDelete }) => {
           }}
         >
           {thumbnailUrl ? (
-            <img src={thumbnailUrl} alt={`Video ${index + 1} thumbnail`} />
+            <img src={thumbnailUrl} alt={`Video ${index + 1} thumbnail`} loading="lazy" decoding="async" />
           ) : (
             <div className="thumbnail-placeholder">Click to play</div>
           )}

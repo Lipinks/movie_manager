@@ -12,9 +12,10 @@
   left: 0;
   right: 0;
   bottom: 0;
+  /* No backdrop-filter: under 80% black the blur was barely visible, but
+     blurring the whole page behind it (thousands of cards on the Videos page)
+     is expensive, especially on phones. */
   background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -98,7 +99,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .modal-buttons .save-btn {

@@ -132,6 +132,32 @@ describe('uploading local edits', () => {
     expect(state()).toBe('saved');
   });
 
+  it('uploads only the edited file, straight to it, as compact JSON', async () => {
+    await startInSync();
+    storage.setItem(storage.KEYS.STARS, []); // an unrelated, unchanged document stays put
+    await settle();
+    drive.resetRequests();
+
+    storage.setItem(storage.KEYS.TAGS, ['a', 'b']);
+    await settle();
+
+    // One request: no lookup first, and no other file re-sent.
+    expect(drive.requests).toHaveLength(1);
+    expect(drive.requests[0].method).toBe('PATCH');
+    expect(drive.requests[0].body).toBe('["a","b"]');
+  });
+
+  it('writes a new file when the remembered one was deleted on Drive', async () => {
+    await startInSync();
+    drive.remove('tags.json');
+
+    storage.setItem(storage.KEYS.TAGS, ['a', 'b']);
+    await settle();
+
+    expect(drive.read('tags.json')).toEqual(['a', 'b']);
+    expect(state()).toBe('saved');
+  });
+
   it('uploads straight away when the tab is hidden', async () => {
     await startInSync({ ...FAST, pushDelayMs: 60 * 1000 });
 
@@ -156,6 +182,20 @@ describe('uploading local edits', () => {
 
     expect(localTags()).toEqual(['mine']);
     expect(drive.read('tags.json')).toEqual(['mine']);
+  });
+
+  it('uploads only the documents left pending by the last visit', async () => {
+    storage.setItem(storage.KEYS.TAGS, ['mine']);
+    storage.setItem(storage.KEYS.YOUTUBE, ['https://www.youtube.com/embed/x']);
+    storage.setItem(storage.KEYS.DRIVE_VERSIONS, {});
+    storage.setRaw(storage.KEYS.SYNC_PENDING, JSON.stringify([storage.KEYS.TAGS]));
+
+    autoSync.start(FAST);
+    await settle();
+
+    expect(drive.read('tags.json')).toEqual(['mine']);
+    expect(drive.read('youtube.json')).toBeUndefined();
+    expect(autoSync.hasPendingChanges()).toBe(false);
   });
 
   it('keeps edits and retries after a failed upload', async () => {

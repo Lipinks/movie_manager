@@ -139,8 +139,8 @@ export const KEYS = {
   CATEGORY_THUMBNAILS: 'categoryThumbnails',
   /** Saved websites shown on the Updates page. */
   UPDATES: 'updates',
-  /** Raw '1' while local edits are waiting to be uploaded to Drive. */
+  /** Raw JSON list of the synced keys edited here but not uploaded to Drive yet. */
   SYNC_PENDING: 'syncPending',
-  /** { [fileName]: modifiedTime } of each Drive file as last downloaded or uploaded here. */
+  /** { [fileName]: { id, modifiedTime } } of each Drive file as last downloaded or uploaded here. */
   DRIVE_VERSIONS: 'driveFileVersions',
 };

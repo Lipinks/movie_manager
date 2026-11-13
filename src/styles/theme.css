@@ -4,7 +4,8 @@
    stylesheet that used --gold-* silently depended on that one component's CSS
    being bundled. They are global tokens, so they live in a global file.
    ==================================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+/* Web fonts are loaded once, from public/index.html, so the browser finds them
+   with the page instead of only after this stylesheet has downloaded. */
 
 :root {
   /* Brand */

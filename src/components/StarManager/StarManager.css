@@ -31,7 +31,7 @@
   line-height: 1;
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .star-shuffle-btn:hover {

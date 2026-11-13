@@ -3,6 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import './VideosPage.css';
 import VideoDialog from '../common/VideoDialog';
 import Dropdown from '../common/Dropdown';
+import ShowMore from '../common/ShowMore';
+import { usePaged } from '../../hooks/usePaged';
 import * as favoritesService from '../../services/favoritesService';
 import * as starsService from '../../services/starsService';
 import * as tagService from '../../services/tagService';
@@ -24,6 +26,9 @@ const orderOptions = [
 ];
 
 const byName = (a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' });
+
+/** Cards rendered at first and per "show more"; the rest load as you scroll. */
+const VIDEOS_PER_PAGE = 50;
 
 // Hidden for now. Flip to true to bring the sidebar star search back — the
 // filtering logic below stays wired up so nothing else has to change.
@@ -148,6 +153,18 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
 
     return result;
   }, [videos, isMainVideosTab, selectedStar, selectedTag, selectedSort, selectedOrder]);
+
+  // Render a page of cards at a time. Changing what is shown starts again
+  // from the first page; edits, deletes and shuffles keep the current length.
+  const {
+    visible: visibleFavorites,
+    remaining: hiddenCount,
+    showMore,
+  } = usePaged(
+    filteredFavorites,
+    VIDEOS_PER_PAGE,
+    [starName, selectedStar, selectedTag, selectedSort, selectedOrder].join('|')
+  );
 
   /* ---------------------------------------------------------------- *
    * Mutations
@@ -328,18 +345,21 @@ const VideosPage = ({ starName = '', starImage, starDataBase, onEditStar }) => {
               : 'No videos found'}
           </p>
         ) : (
-          <div className="card-grid videos-grid">
-            {filteredFavorites.map((favorite) => (
-              <VideoCard
-                key={`${favorite.starName}-${favorite.id}`}
-                favorite={favorite}
-                selectedTag={selectedTag}
-                onTagClick={setSelectedTag}
-                onEdit={handleEditVideo}
-                onDelete={handleDeleteVideo}
-              />
-            ))}
-          </div>
+          <>
+            <div className="card-grid videos-grid">
+              {visibleFavorites.map((favorite) => (
+                <VideoCard
+                  key={`${favorite.starName}-${favorite.id}`}
+                  favorite={favorite}
+                  selectedTag={selectedTag}
+                  onTagClick={setSelectedTag}
+                  onEdit={handleEditVideo}
+                  onDelete={handleDeleteVideo}
+                />
+              ))}
+            </div>
+            <ShowMore remaining={hiddenCount} onShowMore={showMore} />
+          </>
         )}
       </div>
 
@@ -398,6 +418,7 @@ const VideoCard = React.memo(({ favorite, selectedTag, onTagClick, onEdit, onDel
         src={favorite.imageUrl}
         alt={favorite.name}
         loading="lazy"
+        decoding="async"
         onClick={() => window.open(favorite.url, '_blank', 'noopener,noreferrer')}
       />
     </div>

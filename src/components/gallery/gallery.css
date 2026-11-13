@@ -43,7 +43,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
@@ -78,7 +78,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
 .refresh-btn:hover {
@@ -194,7 +194,7 @@
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   background: #e2e8f0;
 }
 
@@ -264,7 +264,7 @@
   color: #4a5568;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
 .pagination-btn:hover:not(:disabled) {
@@ -296,7 +296,7 @@
   color: #4a5568;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .pagination-number:hover {
@@ -334,7 +334,7 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
@@ -413,7 +413,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .modal-close:hover {
@@ -437,7 +437,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
   z-index: 10;
 }
 
@@ -488,7 +488,7 @@
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .modal-delete-btn:hover {

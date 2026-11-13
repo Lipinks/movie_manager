@@ -94,9 +94,12 @@ const StarManager = ({ showAddStarModal, closeAddStarModal, updateStarDetails, s
         {displayStars.map((entry) => (
           <div key={entry.key} className="star-frame">
             <div className="image-container">
+              {/* Lazy: only photos near the screen download, not the whole roster. */}
               <img
                 src={entry.star.Image_Link}
                 alt={entry.star.Name}
+                loading="lazy"
+                decoding="async"
                 onClick={() => navigate(`/star/${encodeURIComponent(toStarKey(entry.star.Name))}`)}
                 style={{ cursor: 'pointer' }}
               />

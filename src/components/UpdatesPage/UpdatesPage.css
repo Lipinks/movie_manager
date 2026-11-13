@@ -43,7 +43,7 @@
   font-size: 14px;
   font-family: 'Inter', sans-serif;
   background: var(--surface);
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
 }
 
@@ -71,7 +71,7 @@
   font-size: 14px;
   font-weight: 500;
   color: #374151;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   white-space: nowrap;
 }
 
@@ -106,7 +106,7 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(218, 165, 32, 0.3);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease;
 }
 
 .updates-add-btn:hover {
@@ -133,7 +133,7 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .updates-open-btn.secondary {
@@ -264,7 +264,7 @@
   font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .update-card-remove:hover {

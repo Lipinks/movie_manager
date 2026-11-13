@@ -34,7 +34,7 @@
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .category-dialog-close:hover {
@@ -156,7 +156,7 @@
 }
 
 .category-pick .media-card {
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .category-pick.selected .media-card {
@@ -193,7 +193,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .category-dialog-add-btn:hover {
@@ -211,7 +211,7 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
 .category-dialog-delete-btn:hover {

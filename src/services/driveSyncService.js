@@ -39,7 +39,7 @@ const FILE_NAMES = DOCUMENTS.map((doc) => doc.file);
 export const SYNCED_KEYS = DOCUMENTS.map((doc) => doc.key);
 
 /** Ask Drive to return these fields for every file it writes. */
-const FILE_FIELDS = 'id,name,modifiedTime';
+const FILE_FIELDS = 'id,name,modifiedTime,trashed';
 
 /** The local value of a document, in the shape that is uploaded. */
 const readLocal = (doc) => {
@@ -54,24 +54,34 @@ const isEmptyValue = (value) => {
 };
 
 /* ------------------------------------------------------------------ *
- * Drive versions
+ * Known Drive files
  *
- * The `modifiedTime` of each file, as last downloaded or uploaded by this
- * browser. Comparing it with Drive's current `modifiedTime` shows which files
- * another device has changed, so an automatic check only downloads those.
+ * The id and `modifiedTime` of each file, as last downloaded or uploaded by
+ * this browser. The id lets an upload write straight to its file without
+ * looking it up first. Comparing `modifiedTime` with Drive's shows which
+ * files another device changed, so an automatic check only downloads those.
  * The key's absence means this browser has never completed a sync.
  * ------------------------------------------------------------------ */
 
-const readKnownVersions = () => {
+const readKnownFiles = () => {
   const stored = storage.getItem(storage.KEYS.DRIVE_VERSIONS, {});
-  return stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
+  if (!stored || typeof stored !== 'object' || Array.isArray(stored)) return {};
+
+  const known = {};
+  Object.entries(stored).forEach(([name, entry]) => {
+    // Entries written before ids were remembered hold just the modifiedTime.
+    known[name] = typeof entry === 'string' ? { modifiedTime: entry } : entry || {};
+  });
+  return known;
 };
 
-/** Record the given files' versions. Always writes, so it also marks a first sync as done. */
-const rememberVersions = (files) => {
-  const next = { ...readKnownVersions() };
+/** Record the given files. Always writes, so it also marks a first sync as done. */
+const rememberFiles = (files) => {
+  const next = readKnownFiles();
   files.forEach((file) => {
-    if (file?.name && file.modifiedTime) next[file.name] = file.modifiedTime;
+    if (file?.name && file.id && file.modifiedTime && !file.trashed) {
+      next[file.name] = { id: file.id, modifiedTime: file.modifiedTime };
+    }
   });
   storage.setItem(storage.KEYS.DRIVE_VERSIONS, next);
 };
@@ -84,26 +94,24 @@ export const hasBaseline = () => storage.getItem(storage.KEYS.DRIVE_VERSIONS, nu
  * ------------------------------------------------------------------ */
 
 /**
- * Create or overwrite a JSON file on Drive. `existingFile` (from a single
- * lookup) is passed in so callers can look up once and save many.
- * @returns the written file's { id, name, modifiedTime }
+ * Compact JSON. Indentation only helped a person reading the file on Drive,
+ * and made every upload about a third bigger.
  */
-const saveFile = async (token, fileName, data, existingFile) => {
-  const fileContent = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+const toJsonBlob = (data) => new Blob([JSON.stringify(data)], { type: 'application/json' });
 
-  if (existingFile) {
-    return driveJson(`${UPLOAD_API}/files/${existingFile.id}?uploadType=media&fields=${FILE_FIELDS}`, {
-      token,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: fileContent,
-    });
-  }
+const updateFile = (token, id, data) =>
+  driveJson(`${UPLOAD_API}/files/${id}?uploadType=media&fields=${FILE_FIELDS}`, {
+    token,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: toJsonBlob(data),
+  });
 
+const createFile = (token, fileName, data) => {
   const metadata = { name: fileName, mimeType: 'application/json' };
   const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  form.append('file', fileContent);
+  form.append('file', toJsonBlob(data));
 
   return driveJson(`${UPLOAD_API}/files?uploadType=multipart&fields=${FILE_FIELDS}`, {
     token,
@@ -112,24 +120,60 @@ const saveFile = async (token, fileName, data, existingFile) => {
   });
 };
 
-/** Push every locally stored document up to Drive. */
-export const syncToDrive = async () =>
-  withAuth(async (token) => {
-    // Look the files up once, then upload all of them in parallel.
-    const files = await findFilesByName(token, FILE_NAMES);
-    const findFile = (name) => files.find((f) => f.name === name);
+/**
+ * Write one document: straight to its remembered file when there is one,
+ * otherwise to the file of that name on Drive, otherwise to a new file.
+ * @param {() => Promise<object[]>} findExisting  shared, at-most-once lookup
+ * @returns the written file's { id, name, modifiedTime, trashed }
+ */
+const uploadDocument = async (token, doc, knownId, findExisting) => {
+  const data = readLocal(doc);
+
+  if (knownId) {
+    try {
+      const written = await updateFile(token, knownId, data);
+      if (!written.trashed) return written;
+    } catch (error) {
+      if (error.status !== 404) throw error;
+    }
+    // The remembered file was deleted or trashed on Drive: use the live one.
+  }
+
+  const existing = (await findExisting()).find((file) => file.name === doc.file && file.id !== knownId);
+  return existing ? updateFile(token, existing.id, data) : createFile(token, doc.file, data);
+};
+
+/**
+ * Push documents up to Drive.
+ * @param {{keys?: string[]}} [options]  only upload the documents stored under
+ *        these localStorage keys; omit to upload everything (the Sync button)
+ */
+export const syncToDrive = async ({ keys } = {}) => {
+  const docs = keys ? DOCUMENTS.filter((doc) => keys.includes(doc.key)) : DOCUMENTS;
+  if (!docs.length) return;
+
+  await withAuth(async (token) => {
+    const known = readKnownFiles();
+
+    // Only documents without a remembered file need a lookup, and they share one.
+    let lookup = null;
+    const findExisting = () => {
+      if (!lookup) lookup = findFilesByName(token, docs.map((doc) => doc.file));
+      return lookup;
+    };
 
     const results = await Promise.allSettled(
-      DOCUMENTS.map((doc) => saveFile(token, doc.file, readLocal(doc), findFile(doc.file)))
+      docs.map((doc) => uploadDocument(token, doc, known[doc.file]?.id, findExisting))
     );
 
     // Record what did upload even if something else failed, so the next
     // check doesn't download this browser's own changes back.
-    rememberVersions(results.filter((r) => r.status === 'fulfilled').map((r) => r.value));
+    rememberFiles(results.filter((r) => r.status === 'fulfilled').map((r) => r.value));
 
     const failure = results.find((r) => r.status === 'rejected');
     if (failure) throw failure.reason;
   });
+};
 
 /* ------------------------------------------------------------------ *
  * Download
@@ -146,13 +190,17 @@ export const syncToDrive = async () =>
 export const downloadFromDrive = async ({ onlyChanged = false } = {}) =>
   withAuth(async (token) => {
     const files = await findFilesByName(token, FILE_NAMES);
-    const known = onlyChanged ? readKnownVersions() : {};
+    const known = onlyChanged ? readKnownFiles() : {};
 
     return Promise.all(
       DOCUMENTS.map(async (doc) => {
         const file = files.find((f) => f.name === doc.file);
         if (!file) return { doc, outcome: 'absent' };
-        if (onlyChanged && file.modifiedTime && known[doc.file] === file.modifiedTime) {
+
+        // Same file at the same version as last time. A different id means
+        // another device wrote a newer copy, so that one is downloaded.
+        const last = known[doc.file];
+        if (onlyChanged && last && file.modifiedTime === last.modifiedTime && (!last.id || last.id === file.id)) {
           return { doc, outcome: 'unchanged', file };
         }
 
@@ -198,7 +246,7 @@ export const applyDownload = (entries) => {
     changedKeys.push(doc.key);
   });
 
-  rememberVersions(entries.filter((e) => e.outcome === 'downloaded' && e.value != null).map((e) => e.file));
+  rememberFiles(entries.filter((e) => e.outcome === 'downloaded' && e.value != null).map((e) => e.file));
 
   return {
     stars: downloadedStars ?? normalizeStars(storage.getItem(STARS.key, STARS.empty)),
@@ -241,7 +289,7 @@ export const matchesLocal = (entries) =>
     return JSON.stringify(remote) === JSON.stringify(local);
   });
 
-/** Record downloaded versions without changing any data: browser and Drive agree. */
+/** Record downloaded files without changing any data: browser and Drive agree. */
 export const markBaseline = (entries) => {
-  rememberVersions(entries.filter((e) => e.outcome === 'downloaded').map((e) => e.file));
+  rememberFiles(entries.filter((e) => e.outcome === 'downloaded').map((e) => e.file));
 };

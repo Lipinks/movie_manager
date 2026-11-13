@@ -68,8 +68,11 @@ export const createFakeDrive = () => {
     const update = url.pathname.match(/^\/upload\/drive\/v3\/files\/([^/]+)$/);
     if (method === 'PATCH' && update) {
       const file = files.get(update[1]);
+      if (!file) return jsonResponse({ error: 'not found' }, 404);
       if (failingNames.has(file.name)) return jsonResponse({ error: 'boom' }, 500);
-      file.content = JSON.parse(await readBlobText(options.body));
+      const text = await readBlobText(options.body);
+      requests[requests.length - 1].body = text;
+      file.content = JSON.parse(text);
       file.modifiedTime = stamp();
       return jsonResponse(meta(file));
     }
@@ -77,8 +80,9 @@ export const createFakeDrive = () => {
     if (method === 'POST' && url.pathname === '/upload/drive/v3/files') {
       const { name } = JSON.parse(await readBlobText(options.body.get('metadata')));
       if (failingNames.has(name)) return jsonResponse({ error: 'boom' }, 500);
-      const content = JSON.parse(await readBlobText(options.body.get('file')));
-      return jsonResponse(meta(write(name, content)));
+      const text = await readBlobText(options.body.get('file'));
+      requests[requests.length - 1].body = text;
+      return jsonResponse(meta(write(name, JSON.parse(text))));
     }
 
     return jsonResponse({ error: `unexpected ${method} ${url.pathname}` }, 400);
@@ -87,6 +91,8 @@ export const createFakeDrive = () => {
   return {
     handle,
     write,
+    /** Delete a file, as if removed from Drive by hand. */
+    remove: (name) => files.delete(byName(name)?.id),
     read: (name) => byName(name)?.content,
     failingNames,
     requests,

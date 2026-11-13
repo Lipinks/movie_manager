@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap');
-        
+/* Web fonts are loaded once, from public/index.html. */
+
 :root {
     --gold-primary: #FFD700;
     --gold-dark: #B8860B;
@@ -92,7 +92,7 @@
     padding: 10px 18px;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
     font-weight: 500;
     font-size: 14px;

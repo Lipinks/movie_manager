@@ -1,7 +1,12 @@
 import { useState, useMemo, useCallback } from 'react';
 import * as favoritesService from '../../services/favoritesService';
 import * as tagService from '../../services/tagService';
+import ShowMore from '../common/ShowMore';
+import { usePaged } from '../../hooks/usePaged';
 import './CategoryDialog.css';
+
+/** Tiles rendered at first and per "show more" in each list. */
+const VIDEOS_PER_PAGE = 50;
 
 /**
  * Category management: un-tag videos, tag more videos, or delete the category
@@ -51,6 +56,11 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
     () => videos.filter((video) => !(video.tags || []).includes(categoryName)),
     [videos, categoryName]
   );
+
+  // The "add" list holds every video outside this category, which can be
+  // thousands, so both lists render a page at a time.
+  const assignedPage = usePaged(assigned, VIDEOS_PER_PAGE, mode);
+  const availablePage = usePaged(available, VIDEOS_PER_PAGE, mode);
 
   // A stored pick only counts while a video in this category still uses that
   // picture — if its video was un-tagged the category silently reverts to an
@@ -222,7 +232,7 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
               </p>
             ) : (
               <div className="card-grid card-grid--compact">
-                {assigned.map((video) => {
+                {assignedPage.visible.map((video) => {
                   const isCover = pinnedVideo != null && video.imageUrl === pinnedVideo.imageUrl;
                   return (
                     <VideoThumb
@@ -272,7 +282,7 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
                 })}
               </div>
             )}
-
+            <ShowMore remaining={assignedPage.remaining} onShowMore={assignedPage.showMore} />
           </>
         ) : (
           <>
@@ -286,7 +296,7 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
               </p>
             ) : (
               <div className="card-grid card-grid--compact">
-                {available.map((video) => {
+                {availablePage.visible.map((video) => {
                   const isSelected = selected.has(videoKey(video));
                   return (
                     <label
@@ -305,6 +315,7 @@ const CategoryDialog = ({ categoryName, onClose, onChanged, onDeleted }) => {
                 })}
               </div>
             )}
+            <ShowMore remaining={availablePage.remaining} onShowMore={availablePage.showMore} />
 
             <div className="modal-buttons">
               <button
