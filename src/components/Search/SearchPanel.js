@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useDeferredValue, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { buildIndex, search } from '../../services/searchService';
+import { buildIndex, search, isLongEnough, MIN_QUERY_LENGTH } from '../../services/searchService';
 import { getFaviconUrl } from '../../utils/url';
 import { viewerUrl } from '../../utils/driveImage';
 import './SearchPanel.css';
@@ -193,11 +193,14 @@ const SearchPanel = ({ onClose }) => {
         <div className="search-results" id="search-results" role="listbox" aria-label="Results" ref={listRef}>
           {!deferredQuery.trim() && (
             <p className="search-empty">
-              Type to search stars, videos, categories and Updates sites. Gallery photos are searched in the
-              folders you’ve opened this visit.
+              Type at least {MIN_QUERY_LENGTH} letters to search stars, videos, categories and Updates sites.
+              Gallery photos are searched in the folders you’ve opened this visit.
             </p>
           )}
-          {deferredQuery.trim() && groups.length === 0 && (
+          {deferredQuery.trim() && !isLongEnough(deferredQuery) && (
+            <p className="search-empty">Keep typing: search starts at {MIN_QUERY_LENGTH} letters.</p>
+          )}
+          {isLongEnough(deferredQuery) && groups.length === 0 && (
             <p className="search-empty">Nothing matches “{deferredQuery.trim()}”.</p>
           )}
 

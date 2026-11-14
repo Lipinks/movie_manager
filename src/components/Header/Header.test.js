@@ -177,6 +177,19 @@ describe('search', () => {
     expect(location()).toBe('/videos?tag=Drama');
   });
 
+  it('waits for 3 letters, and says so', async () => {
+    renderHeader();
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
+    const box = await searchBox();
+
+    fireEvent.change(box, { target: { value: 'da' } });
+    expect(screen.getByText('Keep typing: search starts at 3 letters.')).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Stars' })).toBeNull();
+
+    fireEvent.change(box, { target: { value: 'daw' } });
+    expect(screen.getByRole('group', { name: 'Stars' })).toHaveTextContent('Amara Dawn');
+  });
+
   it('says when nothing matches', async () => {
     renderHeader();
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true });

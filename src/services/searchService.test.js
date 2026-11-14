@@ -73,6 +73,13 @@ it('returns nothing for an empty query', () => {
   expect(search(buildIndex(), '   ')).toEqual([]);
 });
 
+it('waits for 3 letters before searching (spaces don’t count)', () => {
+  const index = buildIndex();
+  expect(search(index, 'da')).toEqual([]);
+  expect(search(index, 'd a')).toEqual([]);
+  expect(search(index, 'daw').map((group) => group.key)).toContain('stars');
+});
+
 it('lets the Videos page filter with the same matching', () => {
   const video = { name: 'Night Drama', starName: 'zoë saldaña', tags: ['Drama'] };
   expect(videoMatches(video, 'ZOE night')).toBe(true);
