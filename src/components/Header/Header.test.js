@@ -41,6 +41,23 @@ afterEach(() => {
   localStorage.clear();
 });
 
+describe('navigation', () => {
+  it('uses icon buttons named for their page, and marks the current one', () => {
+    renderHeader();
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+
+    expect(within(nav).getByRole('button', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
+    fireEvent.click(within(nav).getByRole('button', { name: 'Videos' }));
+
+    expect(location()).toBe('/videos');
+    expect(within(nav).getByRole('button', { name: 'Videos' })).toHaveAttribute('aria-current', 'page');
+    expect(within(nav).getByRole('button', { name: 'Home' })).not.toHaveAttribute('aria-current');
+    // Icons, not text or emoji.
+    expect(within(nav).getByRole('button', { name: 'Videos' }).querySelector('svg')).not.toBeNull();
+    expect(within(nav).getByRole('button', { name: 'Videos' }).textContent).toBe('');
+  });
+});
+
 describe('dark mode toggle', () => {
   const darkModeButton = () => screen.getByRole('button', { name: 'Dark mode' });
 

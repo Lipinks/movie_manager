@@ -9,27 +9,29 @@ const formatTime = (timestamp) =>
 
 /**
  * What the account menu shows for each auto-sync state.
- * `action: 'resume'` offers a retry button; `attention` marks states the
- * user should look at, which the menu button highlights.
+ * `icon` names an Icon; `tone: 'ok'` shows it green. `action: 'resume'`
+ * offers a retry button; `attention` marks states the user should look at,
+ * which the menu button highlights.
  * @returns null while auto-sync is off (signed out)
  */
 export const describeSyncStatus = ({ state, lastSyncedAt }) => {
   switch (state) {
     case 'saved':
       return {
-        icon: '✅',
+        icon: 'check-circle',
+        tone: 'ok',
         label: 'Synced',
         detail: lastSyncedAt
           ? `Everything is saved to Google Drive (last synced ${formatTime(lastSyncedAt)}).`
           : 'Everything is saved to Google Drive.',
       };
     case 'pending':
-      return { icon: '⏳', label: 'Pending', detail: 'Your changes will upload to Google Drive in a moment.' };
+      return { icon: 'clock', label: 'Pending', detail: 'Your changes will upload to Google Drive in a moment.' };
     case 'syncing':
-      return { icon: '🔄', label: 'Syncing', detail: 'Syncing with Google Drive…' };
+      return { icon: 'refresh', label: 'Syncing', detail: 'Syncing with Google Drive…' };
     case 'error':
       return {
-        icon: '⚠️',
+        icon: 'alert-triangle',
         label: 'Sync failed',
         detail: "Couldn't reach Google Drive. Your changes are kept in this browser and will retry.",
         action: 'resume',
@@ -38,7 +40,7 @@ export const describeSyncStatus = ({ state, lastSyncedAt }) => {
       };
     case 'paused':
       return {
-        icon: '⏸️',
+        icon: 'pause-circle',
         label: 'Sync paused',
         detail: 'Your Google session needs renewing before syncing can continue.',
         action: 'resume',
@@ -47,7 +49,7 @@ export const describeSyncStatus = ({ state, lastSyncedAt }) => {
       };
     case 'setup':
       return {
-        icon: '❓',
+        icon: 'help-circle',
         label: 'Choose a copy',
         detail:
           "This browser's data and the copy on Google Drive are different, so auto-sync hasn't overwritten either. " +

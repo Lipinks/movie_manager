@@ -1,6 +1,6 @@
 .gallery-page {
   padding: 20px;
-  padding-top: 40px;
+  padding-top: 64px; /* clears the fixed 50px header */
   min-height: 100vh;
   background: linear-gradient(135deg, var(--dark-surface-muted, #f5f7fa) 0%, var(--dark-surface-strong, #e4e8ec) 100%);
 }

@@ -11,10 +11,11 @@ import './EditStarDialog.css';
  * videos are filed under, so renaming would orphan them.
  *
  * @param {object}   star     the star being edited
+ * @param {number}   [videoCount]  how many videos the star has (tag edits apply to them)
  * @param {Function} onSave   receives the updated star
  * @param {Function} onCancel
  */
-const EditStarDialog = ({ star, onSave, onCancel }) => {
+const EditStarDialog = ({ star, videoCount = 0, onSave, onCancel }) => {
   const [form, setForm] = useState({
     Image_Link: star.Image_Link || '',
     Data_Base: star.Data_Base || '',
@@ -118,7 +119,11 @@ const EditStarDialog = ({ star, onSave, onCancel }) => {
                 onCreate={starTags.create}
               />
             </div>
-            <div className="input-hint">New videos of this star start with these tags</div>
+            <div className="input-hint">
+              {videoCount > 0
+                ? `Tags you add or remove here are also added to or removed from all ${videoCount} of ${star.Name}'s videos, and new videos start with them.`
+                : 'New videos of this star start with these tags.'}
+            </div>
           </div>
 
           {error && <p className="modal-error" role="alert">{error}</p>}

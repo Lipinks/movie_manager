@@ -1,102 +1,5 @@
 .star-manager {
-  padding-top: 55px; /* Add top padding to account for fixed header */
-}
-
-/* ── Page toolbar: title, Add Star, shuffle and sort ── */
-.star-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 8px 10px;
-}
-
-.star-toolbar-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--dark-text-strong, #1e293b);
-}
-
-.star-toolbar-count {
-  margin-left: 6px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  vertical-align: middle;
-  background: var(--dark-surface-strong, #f1f5f9);
-  color: var(--dark-text, #475569);
-}
-
-.star-toolbar-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.star-add-btn {
-  height: 38px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
-  color: #1a1a1a;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.star-add-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
-}
-
-.star-shuffle-btn {
-  width: 38px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  border-radius: 8px;
-  background: linear-gradient(to bottom, var(--gold-dark, #B8860B), #8B6914);
-  font-size: 16px;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.star-shuffle-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
-  background: linear-gradient(to bottom, var(--gold-accent, #DAA520), var(--gold-dark, #B8860B));
-}
-
-.star-shuffle-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-@media (max-width: 600px) {
-  .star-toolbar-title {
-    font-size: 18px;
-  }
-
-  .star-add-btn,
-  .star-shuffle-btn {
-    height: 34px;
-  }
-
-  .star-shuffle-btn {
-    width: 34px;
-  }
+  padding-top: 64px; /* the fixed 50px header, plus breathing room */
 }
 
 .stars-grid {
@@ -112,6 +15,27 @@
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     position: relative;
+    /* The whole card opens the star (see StarCard). */
+    cursor: pointer;
+  }
+
+  .star-frame:focus-visible {
+    outline: 3px solid var(--gold-dark);
+    outline-offset: 2px;
+  }
+
+  /* Shown across the image area when a star's photo is missing or fails. */
+  .star-image-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--dark-text-faint, #94a3b8);
+    background: linear-gradient(135deg, var(--dark-surface-muted, #f8fafc) 0%, var(--dark-surface-strong, #e2e8f0) 100%);
   }
 
   .delete-star-btn {

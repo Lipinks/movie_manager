@@ -11,231 +11,235 @@
     --shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* ====================================
+   HEADER
+   One 50px row: logo · page icons · (page controls) │ search · theme · menu.
+   Pages pad their tops for this height, so keep it at 50px.
+   Every colour comes from the variables below; dark mode swaps them.
+   ==================================== */
 .header {
+    --hdr-bg: linear-gradient(180deg, #fff9e3 0%, #fbe8a6 100%);
+    --hdr-border: rgba(184, 134, 11, 0.32);
+    --hdr-shadow: 0 2px 12px rgba(120, 90, 10, 0.12);
+    --hdr-logo: #2b2205;
+    --hdr-logo-mark: #b8860b;
+    --hdr-icon: #6b5212;
+    --hdr-hover-bg: rgba(255, 255, 255, 0.65);
+    --hdr-active-bg: #ffffff;
+    --hdr-active-icon: #8a6508;
+    --hdr-active-shadow: 0 1px 4px rgba(120, 90, 10, 0.25);
+    --hdr-divider: rgba(107, 82, 18, 0.22);
+    --hdr-focus: #8a6508;
+    --tooltip-bg: #1f2430;
+    --tooltip-text: #ffffff;
+
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
+    right: 0;
     z-index: 1000;
-    background-color: #FFD700; /* Golden background */
-    color: var(--dark-text-strong, #000); /* Black text for contrast */
-    padding: 5px 10px;
+    height: 50px;
     display: flex;
-    gap: 12px;
     align-items: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 215, 0, 0.3);
+    gap: 16px;
+    padding: 0 12px;
+    background: var(--hdr-bg);
+    border-bottom: 1px solid var(--hdr-border);
+    box-shadow: var(--hdr-shadow);
 }
 
-.header::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--gold-accent), transparent);
-}
-
-.header::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffd700' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-    opacity: 0.3;
-    z-index: 0;
+[data-theme='dark'] .header {
+    --hdr-bg: #15171c;
+    --hdr-border: rgba(255, 215, 0, 0.16);
+    --hdr-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+    --hdr-logo: #f5c84c;
+    --hdr-logo-mark: #b8860b;
+    --hdr-icon: #b6bdc8;
+    --hdr-hover-bg: rgba(255, 255, 255, 0.07);
+    --hdr-active-bg: rgba(255, 215, 0, 0.14);
+    --hdr-active-icon: #f5c84c;
+    --hdr-active-shadow: inset 0 0 0 1px rgba(255, 215, 0, 0.28);
+    --hdr-divider: rgba(255, 255, 255, 0.12);
+    --hdr-focus: #f5c84c;
+    --tooltip-bg: #2a2f37;
+    --tooltip-text: #eceef1;
 }
 
 .logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--text-dark);
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 1;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
+    gap: 8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: var(--hdr-logo);
+    white-space: nowrap;
 }
 
-.logo::before {
-    content: "✦";
-    margin-right: 10px;
-    color: var(--gold-dark);
-    font-size: 24px;
-}
-
+.logo::before,
 .logo::after {
     content: "✦";
-    margin-left: 10px;
-    color: var(--gold-dark);
-    font-size: 24px;
+    font-size: 15px;
+    color: var(--hdr-logo-mark);
 }
 
-.header-buttons {
+.header-nav,
+.header-actions,
+.header-page-actions {
     display: flex;
-    gap: 12px;
+    align-items: center;
+    gap: 4px;
+}
+
+.header-end {
     margin-left: auto;
-    position: relative;
-    z-index: 1;
-}
-
-/* Search, theme and the sync/sign-out menu: always visible, set apart from
-   the page navigation by a thin divider. */
-.header-actions {
-    display: flex;
-    gap: 12px;
     flex-shrink: 0;
-    align-items: center;
-    padding-left: 12px;
-    border-left: 1px solid rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1;
-}
-
-.header-btn {
-    background: linear-gradient(to bottom, var(--gold-dark), #8B6914);
-    color: var(--text-light);
-    border: none;
-    padding: 10px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-    font-weight: 500;
-    font-size: 14px;
-    position: relative;
-    overflow: hidden;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
 }
 
-.header-btn::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
+.header-page-actions:empty {
+    display: none;
+}
+
+/* A divider between the page's own controls and the always-there actions. */
+.header-page-actions:not(:empty) + .header-actions {
+    padding-left: 10px;
+    border-left: 1px solid var(--hdr-divider);
+}
+
+/* ── Icon buttons ── */
+.header-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--hdr-icon);
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .header-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(to bottom, var(--gold-accent), var(--gold-dark));
+    background: var(--hdr-hover-bg);
+    color: var(--hdr-active-icon);
 }
 
-.header-btn:hover::before {
-    left: 100%;
+.header-btn.is-active {
+    background: var(--hdr-active-bg);
+    color: var(--hdr-active-icon);
+    box-shadow: var(--hdr-active-shadow);
 }
 
-.header-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.header-btn:focus-visible {
+    outline: 2px solid var(--hdr-focus);
+    outline-offset: 1px;
 }
 
-.home-btn::after {
-    content: "🏠";
+/* ── Tooltips: icon buttons name themselves on hover and keyboard focus ── */
+.header-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 1;
+    transform: translate(-50%, -4px);
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-text);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.12s ease, transform 0.12s ease;
 }
 
-.videos-btn::after {
-    content: "📺";
+.header-btn[data-tooltip]:hover::after,
+.header-btn[data-tooltip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 0.25s;
 }
 
-.category-btn::after {
-    content: "🗂️";
+/* The rightmost buttons' tooltips would run off the screen: anchor them right. */
+.header-actions .header-btn[data-tooltip]::after {
+    left: auto;
+    right: 0;
+    transform: translateY(-4px);
 }
 
-.updates-btn::after {
-    content: "🔔";
+.header-actions .header-btn[data-tooltip]:hover::after,
+.header-actions .header-btn[data-tooltip]:focus-visible::after {
+    transform: translateY(0);
 }
 
-
-/* Responsive design */
-@media (max-width: 640px) {
-    .header-btn {
-        padding: 8px 12px;
-        font-size: 13px;
+/* Phones never hover, and a scrolled-away tooltip would only get in the way. */
+@media (hover: none) {
+    .header-btn[data-tooltip]::after {
+        display: none;
     }
-
-    .logo {
-        font-size: 24px;
-    }
 }
 
-/* Tablets and phones: keep the header a single compact row (~50px tall).
-   The page navigation scrolls sideways; search, theme and the menu stay
-   pinned on the right. (A stacked layout would hide the top of every page
-   behind the fixed header.) */
-@media (max-width: 1024px) {
+/* ── Narrow screens: page icons scroll sideways; the right side stays put ── */
+@media (max-width: 760px) {
     .header {
-        flex-direction: row;
         gap: 8px;
-        padding: 6px 10px;
-        padding-right: 10px;
-        border-radius: 0;
+        padding: 0 8px;
     }
 
+    .header-nav {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .header-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .header-end {
+        margin-left: 0;
+        gap: 6px;
+    }
+
+    .header-page-actions:not(:empty) + .header-actions {
+        padding-left: 6px;
+    }
+
+    .header-btn {
+        width: 34px;
+        height: 34px;
+    }
+}
+
+/* Phones: the logo shrinks to its ✦ mark to leave room for the buttons. */
+@media (max-width: 560px) {
     .logo {
-        font-size: 18px;
-        flex-shrink: 0;
+        font-size: 0;
+        gap: 0;
     }
 
-    .logo::before,
     .logo::after {
         display: none;
     }
 
-    .header-buttons {
-        flex: 1 1 auto;
-        min-width: 0;
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        gap: 8px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+    .logo::before {
+        font-size: 18px;
     }
-
-    .header-buttons::-webkit-scrollbar {
-        display: none;
-    }
-
-    .header-btn {
-        flex-shrink: 0;
-        white-space: nowrap;
-        padding: 8px 12px;
-        font-size: 13px;
-    }
-
-    .header-actions {
-        gap: 8px;
-        padding-left: 8px;
-    }
-}
-/* ====================================
-   DARK MODE
-   A dark bar instead of the gold one, keeping the gold buttons and making
-   the logo gold.
-   ==================================== */
-[data-theme='dark'] .header {
-    background-color: #16181d;
-    border-color: rgba(255, 215, 0, 0.18);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-[data-theme='dark'] .logo {
-    color: var(--gold-primary);
-}
-
-[data-theme='dark'] .header-actions {
-    border-left-color: rgba(255, 255, 255, 0.12);
 }

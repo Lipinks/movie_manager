@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
 import * as authService from './services/authService';
 import * as autoSyncService from './services/autoSyncService';
@@ -8,6 +8,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import LoginPage from './components/LoginPage/LoginPage';
 import LoadingPage from './components/LoadingPage/LoadingPage';
 import Header from './components/Header/Header';
+import { HeaderSlotContext } from './components/Header/headerSlot';
 import StarManager from './components/StarManager/StarManager';
 import StarDetails from './components/StarDetails/StarDetails';
 import VideosPage from './components/VideosPage/VideosPage';
@@ -50,6 +51,9 @@ const App = () => {
   const [accessToken, setAccessToken] = useState(() => authService.getAccessToken());
   const [isLoading, setIsLoading] = useState(false);
   const [stars, setStars] = useState(() => starsService.getStars());
+  // Where pages put their own header buttons (see headerSlot.js).
+  const [headerSlot, setHeaderSlot] = useState(null);
+  const headerSlotValue = useMemo(() => ({ slot: headerSlot, setSlot: setHeaderSlot }), [headerSlot]);
 
   // The auth service owns the session; mirror it into React state so an
   // expired token that cannot be renewed silently drops us back to the login
@@ -151,40 +155,42 @@ const App = () => {
 
   return (
     <HashRouter>
-      <ScrollToTop />
-      <div>
-        <Header
-          onSignOut={handleSignOut}
-          onSync={handleSync}
-          onFetchData={handleFetchData}
-        />
-        <ErrorBoundary>
-          {isLoading ? (
-            <LoadingPage />
-          ) : (
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <StarManager
-                    updateStarDetails={handleStarsUpdate}
-                    stars={stars}
-                  />
-                }
-              />
-              <Route
-                path="/star/:starName"
-                element={<StarDetails stars={stars} onStarsUpdate={handleStarsUpdate} />}
-              />
-              <Route path="/videos" element={<VideosPage starName="" />} />
-              <Route path="/category" element={<CategoryPage />} />
-              <Route path="/updates" element={<UpdatesPage />} />
-              <Route path="/youtube" element={<YoutubePage />} />
-              <Route path="/gallery" element={<Gallery />} />
-            </Routes>
-          )}
-        </ErrorBoundary>
-      </div>
+      <HeaderSlotContext.Provider value={headerSlotValue}>
+        <ScrollToTop />
+        <div>
+          <Header
+            onSignOut={handleSignOut}
+            onSync={handleSync}
+            onFetchData={handleFetchData}
+          />
+          <ErrorBoundary>
+            {isLoading ? (
+              <LoadingPage />
+            ) : (
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <StarManager
+                      updateStarDetails={handleStarsUpdate}
+                      stars={stars}
+                    />
+                  }
+                />
+                <Route
+                  path="/star/:starName"
+                  element={<StarDetails stars={stars} onStarsUpdate={handleStarsUpdate} />}
+                />
+                <Route path="/videos" element={<VideosPage starName="" />} />
+                <Route path="/category" element={<CategoryPage />} />
+                <Route path="/updates" element={<UpdatesPage />} />
+                <Route path="/youtube" element={<YoutubePage />} />
+                <Route path="/gallery" element={<Gallery />} />
+              </Routes>
+            )}
+          </ErrorBoundary>
+        </div>
+      </HeaderSlotContext.Provider>
     </HashRouter>
   );
 };

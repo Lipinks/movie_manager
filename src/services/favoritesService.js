@@ -153,6 +153,32 @@ export const removeTagFromVideo = (starName, id, tag) => {
 };
 
 /**
+ * Carry a change to a star's tags over to every one of its videos: tags in
+ * `add` are added where missing, tags in `remove` are taken off. Each video
+ * keeps its other tags, and nothing is written when nothing changes.
+ *
+ * @param {string} starName
+ * @param {{add?: string[], remove?: string[]}} change
+ * @returns {number} how many videos changed
+ */
+export const retagStarVideos = (starName, { add = [], remove = [] } = {}) => {
+  if (!add.length && !remove.length) return 0;
+  const key = toStarKey(starName);
+  let changed = 0;
+
+  const next = readList(key).map((video) => {
+    const current = Array.isArray(video.tags) ? video.tags : [];
+    const tags = [...current.filter((tag) => !remove.includes(tag)), ...add.filter((tag) => !current.includes(tag))];
+    if (tags.length === current.length && tags.every((tag, i) => tag === current[i])) return video;
+    changed += 1;
+    return { ...video, tags };
+  });
+
+  if (changed) writeList(key, next);
+  return changed;
+};
+
+/**
  * Strip `tag` from every video that carries it. Used when a category is
  * deleted — no video is removed, only the association.
  */

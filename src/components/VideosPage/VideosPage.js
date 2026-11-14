@@ -44,7 +44,7 @@ const SHOW_STAR_SEARCH = false;
  * and embedded in a star's page (starName set). All reads and writes go
  * through favoritesService so the storage shape lives in exactly one place.
  */
-const VideosPage = ({ starName = '', starImage, starDataBase, starTags, onEditStar }) => {
+const VideosPage = ({ starName = '', starImage, starDataBase, starTags, dataVersion = 0, onEditStar }) => {
   const isMainVideosTab = starName === '';
 
   const [videos, setVideos] = useState([]);
@@ -104,9 +104,11 @@ const VideosPage = ({ starName = '', starImage, starDataBase, starTags, onEditSt
     setAvailableTags(tagService.getTags());
   }, [isMainVideosTab, starName]);
 
+  // `dataVersion` changes when the star page edits these videos itself
+  // (for example, a star's tags carried over to all of its videos).
   useEffect(() => {
     reload();
-  }, [reload]);
+  }, [reload, dataVersion]);
 
   useRemoteRefresh(
     useCallback(() => {
