@@ -30,6 +30,17 @@ describe('Edit Star', () => {
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ Name: 'Amara Dawn', Tags: ['Travel'] }));
   });
 
+  it('closes with Esc, without saving', () => {
+    const onSave = jest.fn();
+    const onCancel = jest.fn();
+    render(<EditStarDialog star={{ Name: 'Amara', Image_Link: 'x' }} onSave={onSave} onCancel={onCancel} />);
+
+    fireEvent.keyDown(screen.getByPlaceholderText('Image URL'), { key: 'Escape' });
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it('copes with stars saved before they had tags', () => {
     render(<EditStarDialog star={{ Name: 'Old', Image_Link: 'x' }} onSave={() => {}} onCancel={() => {}} />);
     expect(selectedTags()).toEqual([]);

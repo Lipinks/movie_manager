@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ThumbnailPreview from '../../common/ThumbnailPreview';
 import TagEditor from '../../common/TagEditor';
 import { useTagSelection } from '../../../hooks/useTagSelection';
+import { useEscapeKey } from '../../../hooks/useEscapeKey';
 import './AddStarDialog.css';
 
 /**
@@ -15,6 +16,8 @@ import './AddStarDialog.css';
 const AddStarDialog = ({ onSave, onCancel, isDuplicateName }) => {
   const [star, setStar] = useState({ Name: '', Image_Link: '', Data_Base: '' });
   const starTags = useTagSelection([]);
+  // Esc closes the dialog, like Cancel.
+  useEscapeKey(onCancel);
   const [error, setError] = useState('');
 
   const handleInputChange = (e) => {

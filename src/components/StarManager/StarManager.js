@@ -104,6 +104,8 @@ const StarManager = ({ updateStarDetails, stars }) => {
   const handleSave = (newStar) => {
     updateStarDetails([...stars, newStar]);
     setShowAddStar(false);
+    // Straight to the new star's page, ready to add their videos.
+    openStar(newStar);
   };
 
   const handleDelete = ({ star, index }) => {

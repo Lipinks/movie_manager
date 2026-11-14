@@ -89,11 +89,6 @@
   font-size: 0.95rem;
 }
 
-.edit-star-body .input-label i {
-  color: var(--accent-indigo);
-  width: 20px;
-}
-
 .edit-star-body .input-wrapper {
   position: relative;
   border-radius: 12px;
@@ -120,7 +115,7 @@
 
 .edit-star-body input {
   width: 100%;
-  padding: 16px 20px 16px 50px;
+  padding: 14px 16px;
   border: none;
   background: transparent;
   font-size: 1rem;
@@ -138,19 +133,6 @@
   color: var(--text-muted);
   background: transparent;
   cursor: not-allowed;
-}
-
-.edit-star-body .input-icon {
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--dark-text-faint, #94a3b8);
-  pointer-events: none;
-}
-
-.edit-star-body .input-wrapper.disabled .input-icon {
-  color: var(--text-muted);
 }
 
 .edit-star-body .input-hint {

@@ -75,6 +75,28 @@ it('adds a star from the page controls', () => {
   expect(updateStarDetails).not.toHaveBeenCalled();
 });
 
+it("opens the new star's page straight after Save Star", () => {
+  const { updateStarDetails } = renderPage();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Add star' }));
+  fireEvent.change(screen.getByPlaceholderText('Name'), { target: { value: 'Cleo Vance' } });
+  fireEvent.change(screen.getByPlaceholderText('Image Link'), { target: { value: 'https://example.test/c.jpg' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Save Star' }));
+
+  expect(updateStarDetails).toHaveBeenCalledWith([...stars, expect.objectContaining({ Name: 'Cleo Vance' })]);
+  expect(screen.getByTestId('location')).toHaveTextContent('/star/cleo%20vance');
+});
+
+it('closes the Add Star dialog with Esc', () => {
+  const { updateStarDetails } = renderPage();
+
+  fireEvent.click(screen.getByRole('button', { name: 'Add star' }));
+  fireEvent.keyDown(screen.getByPlaceholderText('Name'), { key: 'Escape' });
+
+  expect(screen.queryByRole('heading', { name: 'Add New Star' })).toBeNull();
+  expect(updateStarDetails).not.toHaveBeenCalled();
+});
+
 it('puts its controls in the header when there is one', () => {
   const WithHeader = () => {
     const [slot, setSlot] = useState(null);

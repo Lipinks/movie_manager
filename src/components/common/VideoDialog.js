@@ -3,6 +3,7 @@ import VideoFormFields from './VideoFormFields';
 import ThumbnailPreview from './ThumbnailPreview';
 import Dropdown from './Dropdown';
 import './VideoDialog.css';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
 
 /**
  * The one dialog used for both adding and editing a video.
@@ -58,6 +59,8 @@ const VideoDialog = ({
   }));
   const [starName, setStarName] = useState(initialStarName);
   const [error, setError] = useState('');
+  // Esc closes the dialog, like Cancel.
+  useEscapeKey(onCancel);
 
   // Tags that came from the picked star (not chosen by hand), so picking a
   // different star can swap them out without touching the user's own picks.

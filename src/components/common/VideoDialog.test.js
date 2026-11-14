@@ -20,6 +20,22 @@ const renderDialog = (props = {}) => {
   return onSave;
 };
 
+it('closes with Esc, for adding and editing alike', () => {
+  const onCancel = jest.fn();
+  const { unmount } = render(
+    <VideoDialog title="Add New Video" onSave={() => {}} onCancel={onCancel} />
+  );
+  fireEvent.keyDown(screen.getByPlaceholderText('Video Name'), { key: 'Escape' });
+  unmount();
+
+  render(
+    <VideoDialog title="Edit Video" initialValue={{ name: 'Old', imageUrl: 'x' }} onSave={() => {}} onCancel={onCancel} />
+  );
+  fireEvent.keyDown(document.body, { key: 'Escape' });
+
+  expect(onCancel).toHaveBeenCalledTimes(2);
+});
+
 describe('video duration', () => {
   it('adds the colon after the minutes', () => {
     renderDialog();
